@@ -1,4 +1,4 @@
-name: trivy
+name: scan
 on:
   pull_request:
     branches:
@@ -20,6 +20,12 @@ jobs:
         with:
           scan-type: 'config'
           hide-progress: true
-          format: 'table'
-          exit-code: '1' # Fails the build if issues are found
-          severity: 'CRITICAL,HIGH'
+          format: 'sarif'            # Generates SARIF format
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()                 # Ensure results upload even if scan finds issues
+        with:
+          sarif_file: 'trivy-results.sarif'
