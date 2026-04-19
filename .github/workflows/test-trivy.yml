@@ -1,0 +1,22 @@
+name: trivy
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - 'feature/**'
+jobs:
+  scan:
+    name: trivy
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
