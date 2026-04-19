@@ -1,0 +1,5 @@
+.aws
+.kube
+**/*.env
+**/.terraform
+**/.terraform.lock.hcl
