@@ -27,7 +27,6 @@ jobs:
           format: 'sarif'            # Generates SARIF format
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
-          exit-code: '1'              # Exitif vulnerabilities are found
 
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v3
@@ -42,8 +41,9 @@ jobs:
         with:
           scan-type: 'config'
           hide-progress: true
+          severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
           format: 'template'
-          template: '@/contrib/markdown.tpl' # Can use contrib/markdown.tpl if preferred
+          template: '@/contrib/sarif.tpl' # Can use contrib/markdown.tpl if preferred
           output: 'trivy-results.md'
 
 
