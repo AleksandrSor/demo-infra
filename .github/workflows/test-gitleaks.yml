@@ -1,4 +1,4 @@
-name: scan
+name: scan-gitleaks
 on:
   pull_request:
     branches:

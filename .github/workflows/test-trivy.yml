@@ -1,4 +1,4 @@
-name: scan
+name: scan-trivy
 on:
   pull_request:
     branches:
@@ -7,7 +7,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      
+
 permissions:
   security-events: write  # Required to upload SARIF results
       
@@ -27,9 +27,21 @@ jobs:
           format: 'sarif'            # Generates SARIF format
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
+          exit-code: '1'              # Exitif vulnerabilities are found
 
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v3
         if: always()                 # Ensure results upload even if scan finds issues
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Convert SARIF to Markdown
+        uses: sarif-to-markdown/sarif-to-markdown-action@v1
+        if: always()                 # Ensure results upload even if scan finds issues
+        with:
+          sarif-file: 'trivy-results.sarif'
+          markdown-file: 'trivy-results.md'
+
+      - name: Add to Job Summary
+        if: always()                 # Ensure results upload even if scan finds issues  
+        run: cat trivy-results.md >> $GITHUB_STEP_SUMMARY
