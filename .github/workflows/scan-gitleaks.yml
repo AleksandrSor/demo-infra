@@ -1,12 +1,7 @@
 name: scan-gitleaks
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
-      - 'feature/**'
+  workflow_call:
+    
 jobs:
   scan:
     name: gitleaks

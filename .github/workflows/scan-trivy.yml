@@ -2,8 +2,8 @@ name: scan-trivy
 on:
   workflow_call:
 
-permissions:
-  security-events: write  # Required to upload SARIF results
+# permissions:
+#   security-events: write  # Required to upload SARIF results
       
 jobs:
   scan:
