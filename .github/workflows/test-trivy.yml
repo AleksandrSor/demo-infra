@@ -1,12 +1,6 @@
 name: scan-trivy
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
-      - 'feature/**'
+  workflow_call:
 
 permissions:
   security-events: write  # Required to upload SARIF results
@@ -33,20 +27,8 @@ jobs:
         if: always()                 # Ensure results upload even if scan finds issues
         with:
           sarif_file: 'trivy-results.sarif'
-      
-      # 3. Generate Markdown Report for PR
-      - name: Run Trivy vulnerability scanner (Markdown)
-        if: always()                 # Ensure results upload even if scan finds issues 
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'config'
-          hide-progress: true
-          severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
-          format: 'template'
-          template: '@/contrib/sarif.tpl' # Can use contrib/markdown.tpl if preferred
-          output: 'trivy-results.md'
 
-
-      - name: Add to Job Summary
-        if: always()                 # Ensure results upload even if scan finds issues  
-        run: cat trivy-results.md >> $GITHUB_STEP_SUMMARY
+      ## TODO: Add markdown report generation and upload to job summary once trivy supports it
+      ## - name: Add to Job Summary
+      ##   if: always()                 # Ensure results upload even if scan finds issues  
+      ##   run: cat trivy-results.md >> $GITHUB_STEP_SUMMARY
