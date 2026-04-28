@@ -1,7 +1,7 @@
 name: scan-gitleaks
 on:
   workflow_call:
-    
+
 jobs:
   scan:
     name: gitleaks
@@ -13,3 +13,9 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'  # Enable artifact upload for SARIF results
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()                 # Ensure results upload even if scan finds issues
+        with:
+          sarif_file: 'results.sarif'
