@@ -1,6 +1,31 @@
 name: scan
 on:
   workflow_call:
+    inputs:
+      scan-codeql:
+        description: 'Whether to run CodeQL analysis'
+        required: false
+        default: true
+        type: boolean
+      scan-gitleaks:
+        description: 'Whether to run Gitleaks analysis'
+        required: false
+        default: true
+        type: boolean
+      scan-trivy:
+        description: 'Whether to run Trivy analysis'
+        type: boolean
+        required: false
+        default: true
+      codeql-languages:
+        description: 'Languages to run CodeQL analysis on'
+        required: false
+        default: |
+            [{
+              "language": "actions",
+              "build-mode": "none"
+            }]
+        type: string
 
 jobs:
   scan-gitleaks:
@@ -9,9 +34,22 @@ jobs:
     permissions:
         security-events: write  # Required to upload SARIF results
         contents: read  # Required for checkout and gitleaks
+    if: ${{ inputs.scan-gitleaks }}
   scan-trivy:
     uses: ./.github/workflows/scan-trivy.yml
     secrets: inherit
     permissions:
         security-events: write  # Required to upload SARIF results
         contents: read  # Required for checkout and trivy
+    if: ${{ inputs.scan-trivy }}
+  scan-codeql:
+    uses: ./.github/workflows/scan-codeql.yml
+    with:
+      languages: ${{ inputs.codeql-languages }}
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks        
+        packages: read # required to fetch internal or private CodeQL packs
+        actions: read # only required for workflows in private repositories
+    if: ${{ inputs.scan-codeql }}
