@@ -14,4 +14,6 @@ jobs:
     secrets: inherit
     permissions:
         security-events: write  # Required to upload SARIF results
-        contents: read  # Required for checkout and gitleaks
+        contents: read  # Required for checkout and gitleaks        
+        packages: read # required to fetch internal or private CodeQL packs
+        actions: read # only required for workflows in private repositories
