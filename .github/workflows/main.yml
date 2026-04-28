@@ -1,0 +1,17 @@
+name: main
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - 'feature/**'
+
+jobs:
+  scan:
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks

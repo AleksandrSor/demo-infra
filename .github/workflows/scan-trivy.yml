@@ -1,0 +1,34 @@
+name: scan-trivy
+on:
+  workflow_call:
+
+# permissions:
+#   security-events: write  # Required to upload SARIF results
+      
+jobs:
+  scan:
+    name: trivy
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          hide-progress: true
+          format: 'sarif'            # Generates SARIF format
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'  # Filter for high-impact issues
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()                 # Ensure results upload even if scan finds issues
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      ## TODO: Add markdown report generation and upload to job summary once trivy supports it
+      ## - name: Add to Job Summary
+      ##   if: always()                 # Ensure results upload even if scan finds issues  
+      ##   run: cat trivy-results.md >> $GITHUB_STEP_SUMMARY

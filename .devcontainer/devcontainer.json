@@ -10,7 +10,8 @@
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
 		"ghcr.io/audacioustux/devcontainers/k9s:1": {},
 		"ghcr.io/devcontainers-extra/features/opentofu:1": {},
-		"ghcr.io/devcontainers-extra/features/terragrunt:1": {}
+		"ghcr.io/devcontainers-extra/features/terragrunt:1": {},
+		"ghcr.io/devcontainers-extra/features/pre-commit:2": {}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -32,5 +33,12 @@
 	,"runArgs": [
         "--env-file",
         "${localWorkspaceFolder}/.devcontainer/devcontainer.env"
-    ]
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"github.vscode-github-actions"
+			]
+		}
+	}
 }
