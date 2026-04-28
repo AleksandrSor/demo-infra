@@ -2,6 +2,16 @@ name: "scan-codeQL"
 
 on:
   workflow_call:
+    inputs:
+      languages:
+        description: 'Languages to run CodeQL analysis on'
+        required: false
+        default: |
+            [{
+              "language": "actions",
+              "build-mode": "none"
+            }]
+        type: string
 
 jobs:
   analyze:
@@ -16,9 +26,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - language: actions
-            build-mode: none
+        include: ${{ fromJson(inputs.languages) }}
+        # Example of matrix configuration for multiple languages and build modes:
+        #   - language: actions
+        #     build-mode: none
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
