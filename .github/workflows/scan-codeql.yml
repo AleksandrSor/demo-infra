@@ -27,9 +27,6 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(inputs.languages) }}
-        # Example of matrix configuration for multiple languages and build modes:
-        #   - language: actions
-        #     build-mode: none
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4

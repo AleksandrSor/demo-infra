@@ -17,6 +17,15 @@ on:
         type: boolean
         required: false
         default: true
+      codeql-languages:
+        description: 'Languages to run CodeQL analysis on'
+        required: false
+        default: |
+            [{
+              "language": "actions",
+              "build-mode": "none"
+            }]
+        type: string
 
 jobs:
   scan-gitleaks:
@@ -35,6 +44,8 @@ jobs:
     if: ${{ inputs.scan-trivy }}
   scan-codeql:
     uses: ./.github/workflows/scan-codeql.yml
+    with:
+      languages: ${{ inputs.codeql-languages }}
     secrets: inherit
     permissions:
         security-events: write  # Required to upload SARIF results
