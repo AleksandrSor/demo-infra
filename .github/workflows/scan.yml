@@ -1,0 +1,17 @@
+name: scan
+on:
+  workflow_call:
+
+jobs:
+  scan-gitleaks:
+    uses: ./.github/workflows/scan-gitleaks.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks
+  scan-trivy:
+    uses: ./.github/workflows/scan-trivy.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and trivy
