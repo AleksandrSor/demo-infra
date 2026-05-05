@@ -10,13 +10,19 @@ Built with [OpenTofu](https://opentofu.org/) and managed inside a dev container.
 
 ```
 demo-infra/
-├── .devcontainer/          # Dev container config (OpenTofu, AWS CLI, kubectl, Helm)
-├── demo-core/              # Core AWS bootstrap module
-│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-│   ├── provider.tf         # AWS provider config
-│   ├── variables.tf        # Input variables (region, project name, IAM user)
-│   ├── data.tf             # Data sources (caller identity, region)
-│   ├── user.tf             # IAM automation user + access keys stored in Secrets Manager
+├── .devcontainer/              # Dev container config (OpenTofu, AWS CLI, kubectl, Helm)
+├── .github/
+│   └── workflows/              # CI/CD pipelines (security scanning)
+├── demo-core/                  # Core AWS bootstrap module
+│   ├── terraform.tf            # Provider requirements (AWS ~> 6.0)
+│   ├── provider.tf             # AWS provider config
+│   ├── variables.tf            # Input variables
+│   ├── locals.tf               # Local computed values (admin ARNs)
+│   ├── data.tf                 # Data sources (caller identity, region)
+│   ├── user.tf                 # IAM automation user + access keys in Secrets Manager
+│   ├── role.tf                 # IAM roles (execution + KMS)
+│   └── kms.tf                  # KMS key for state encryption
+├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
 
@@ -28,7 +34,21 @@ Bootstrap module that sets up the foundational AWS resources needed before other
 |---|---|
 | `aws_iam_user` | Automation IAM user for IaC pipelines |
 | `aws_iam_access_key` | Access key for the automation user |
-| `aws_secretsmanager_secret` | Stores the access key ID and secret securely |
+| `aws_secretsmanager_secret` | Stores access key ID and secret (KMS-encrypted) |
+| `aws_kms_key` | KMS key for encrypting Terraform state |
+| `aws_iam_role` (execution) | Role assumed by the automation user to run Tofu |
+| `aws_iam_role` (kms) | Role for KMS encryption operations |
+
+---
+
+## CI/CD
+
+GitHub Actions workflows under `.github/workflows/`:
+
+| Workflow | Trigger | Description |
+|---|---|---|
+| `main.yml` | push / PR to `main`, `feature/**` | Orchestrates all scan jobs |
+| `scan.yml` | reusable | Runs CodeQL, Gitleaks, and Trivy scans |
 
 ---
 
@@ -53,5 +73,8 @@ tofu apply
 |---|---|---|
 | `project_region` | `us-east-1` | AWS region to deploy into |
 | `project_name` | `sa-demo` | Project name prefix |
-| `user_name` | `sa-demo-tf-user` | IAM automation user name |
-| `user_path` | `/automation/iac/` | IAM path for the user |
+| `tf_user_name` | `sa-demo-tf-user` | IAM automation user name |
+| `tf_user_path` | `/automation/iac/` | IAM path for the user |
+| `tf_role_name` | `TFExecutionRole` | Name of the IAM execution role |
+| `tf_extra_admin_user` | `terraf1admin` | Additional user granted admin access to KMS/policies |
+| `common_tags` | `Project`, `Environment`, `ManagedBy` | Tags applied to all resources |
