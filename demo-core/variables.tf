@@ -35,6 +35,6 @@ variable "common_tags" {
   default = {
     Project     = "sa-demo"
     Environment = "Development"
-    ManagedBy   = "Tofu"
+    Owner   = "DevOps Team"
   }
 }
