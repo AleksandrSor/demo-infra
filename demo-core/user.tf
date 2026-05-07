@@ -1,8 +1,8 @@
 resource "aws_iam_user" "tf_user" {
+  
   name = var.tf_user_name
   path = var.tf_user_path
 
-  tags = var.common_tags
 }
 
 
@@ -16,7 +16,6 @@ resource "aws_secretsmanager_secret" "tf_user_key_id" {
 
   kms_key_id = aws_kms_alias.tf_state.name
 
-  tags = var.common_tags
 }
 
 resource "aws_secretsmanager_secret_version" "tf_user_key_id" {
@@ -30,7 +29,6 @@ resource "aws_secretsmanager_secret" "tf_user_key_secret" {
 
   kms_key_id = aws_kms_alias.tf_state.name
 
-  tags = var.common_tags
 }
 
 resource "aws_secretsmanager_secret_version" "tf_user_key_secret" {
