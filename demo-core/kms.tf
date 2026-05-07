@@ -33,8 +33,6 @@ resource "aws_kms_key" "tf_state" {
     enable_key_rotation     = true # Best practice for security
 
     policy = data.aws_iam_policy_document.kms_tf_state_access.json
-
-    tags = var.common_tags
 }
 
 resource "aws_kms_alias" "tf_state" {

@@ -13,8 +13,6 @@ data "aws_iam_policy_document" "tf_execution_role_policy" {
 resource "aws_iam_role" "tf_execution_role" {
   name               = var.tf_role_name
   assume_role_policy = data.aws_iam_policy_document.tf_execution_role_policy.json
-
-  tags = var.common_tags
 }
 
 data "aws_iam_policy_document" "tf_kms_user_role_policy" {
@@ -33,6 +31,4 @@ resource "aws_iam_role" "tf_kms_user_role" {
   name = "kms-encryption-role-${var.project_name}"
 
   assume_role_policy = data.aws_iam_policy_document.tf_kms_user_role_policy.json
-
-  tags = var.common_tags
 }
