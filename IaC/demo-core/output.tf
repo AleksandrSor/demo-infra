@@ -22,6 +22,6 @@ output "tf_execute_role_arn" {
   value = aws_iam_role.tf_execution_role.arn
 }
 
-output "s3_backet_name" {
+output "s3_bucket_name" {
   value = aws_s3_bucket.tf_state.bucket_domain_name
 }

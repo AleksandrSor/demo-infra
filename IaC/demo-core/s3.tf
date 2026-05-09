@@ -1,7 +1,12 @@
 # 1. Create an S3 bucket for Terraform state storage
 resource "aws_s3_bucket" "tf_state" {
   bucket = "tf-state-${var.project_name}"
-  bucket_namespace = "account-regional" # Ensures bucket name uniqueness across accounts and regions
+  bucket_namespace = "account-regional" 
+
+  lifecycle {
+    # for test purposes, we allow the bucket to be destroyed when the stack is deleted. In production, you may want to set this to true to prevent accidental deletion of the state bucket.
+    prevent_destroy = false
+  }
 }
 
 # 2. Enable versioning to recover older state versions
