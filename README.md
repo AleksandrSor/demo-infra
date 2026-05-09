@@ -1,6 +1,6 @@
 # demo-infra
 
-Infrastructure as Code (IaC) project to provision AWS resources for running a fullstack demo application.
+Demo Infrastructure as Code (IaC) project to provision AWS resources for a fullstack demo application.
 
 Built with [OpenTofu](https://opentofu.org/) and managed inside a dev container.
 
@@ -13,20 +13,23 @@ demo-infra/
 ├── .devcontainer/              # Dev container config (OpenTofu, AWS CLI, kubectl, Helm)
 ├── .github/
 │   └── workflows/              # CI/CD pipelines (security scanning)
-├── demo-core/                  # Core AWS bootstrap module
-│   ├── terraform.tf            # Provider requirements (AWS ~> 6.0)
-│   ├── provider.tf             # AWS provider config
-│   ├── variables.tf            # Input variables
-│   ├── locals.tf               # Local computed values (admin ARNs)
-│   ├── data.tf                 # Data sources (caller identity, region)
-│   ├── user.tf                 # IAM automation user + access keys in Secrets Manager
-│   ├── role.tf                 # IAM roles (execution + KMS)
-│   └── kms.tf                  # KMS key for state encryption
+├── IaC/
+│   └── demo-core/              # Core AWS bootstrap module
+│       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
+│       ├── provider.tf         # AWS provider config + default tags
+│       ├── variables.tf        # Input variables and common tags
+│       ├── locals.tf           # Local computed values (admin ARNs)
+│       ├── data.tf             # Data sources (caller identity, region)
+│       ├── user.tf             # IAM automation user + access keys in Secrets Manager
+│       ├── role.tf             # IAM roles (execution + KMS)
+│       ├── kms.tf              # KMS key for encryption
+│       ├── s3.tf               # S3 bucket + policy for tfstate
+│       └── output.tf           # Useful bootstrap outputs
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
 
-### `demo-core`
+### IaC/demo-core
 
 Bootstrap module that sets up the foundational AWS resources needed before other modules can run:
 
@@ -35,9 +38,10 @@ Bootstrap module that sets up the foundational AWS resources needed before other
 | `aws_iam_user` | Automation IAM user for IaC pipelines |
 | `aws_iam_access_key` | Access key for the automation user |
 | `aws_secretsmanager_secret` | Stores access key ID and secret (KMS-encrypted) |
-| `aws_kms_key` | KMS key for encrypting Terraform state |
+| `aws_kms_key` | KMS key used for state/secret encryption |
 | `aws_iam_role` (execution) | Role assumed by the automation user to run Tofu |
 | `aws_iam_role` (kms) | Role for KMS encryption operations |
+| `aws_s3_bucket` | Terraform state bucket with versioning and encryption |
 
 ---
 
@@ -48,7 +52,10 @@ GitHub Actions workflows under `.github/workflows/`:
 | Workflow | Trigger | Description |
 |---|---|---|
 | `main.yml` | push / PR to `main`, `feature/**` | Orchestrates all scan jobs |
-| `scan.yml` | reusable | Runs CodeQL, Gitleaks, and Trivy scans |
+| `scan.yml` | reusable | Orchestrates reusable scan workflows |
+| `scan-codeql.yml` | reusable | CodeQL static analysis |
+| `scan-gitleaks.yml` | reusable | Secret scanning |
+| `scan-trivy.yml` | reusable | IaC config vulnerability scanning |
 
 ---
 
@@ -60,7 +67,7 @@ GitHub Actions workflows under `.github/workflows/`:
 ## Usage
 
 ```bash
-cd demo-core
+cd IaC/demo-core
 
 tofu init
 tofu plan
@@ -77,4 +84,4 @@ tofu apply
 | `tf_user_path` | `/automation/iac/` | IAM path for the user |
 | `tf_role_name` | `TFExecutionRole` | Name of the IAM execution role |
 | `tf_extra_admin_user` | `terraf1admin` | Additional user granted admin access to KMS/policies |
-| `common_tags` | `Project`, `Environment`, `ManagedBy` | Tags applied to all resources |
+| `common_tags` | `Project`, `Environment`, `Owner` | Tags applied to all resources |

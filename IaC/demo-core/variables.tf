@@ -1,32 +1,32 @@
 variable "project_region" {
-  type = string
+  type    = string
   default = "us-east-1"
 }
 
 variable "project_name" {
-  type = string
+  type    = string
   default = "sa-demo"
 }
 
 variable "tf_user_name" {
-  type = string
+  type    = string
   default = "sa-demo-tf-user"
 }
 
 variable "tf_user_path" {
-  type = string
+  type    = string
   default = "/automation/iac/"
 }
 
 variable "tf_role_name" {
-  type = string
+  type    = string
   default = "TFExecutionRole"
 }
 
 variable "tf_extra_admin_user" {
-  type = string
+  type        = string
   description = "Extra user to put into some policies"
-  default = "terraf1admin"
+  default     = "terraf1admin"
 }
 
 variable "common_tags" {
@@ -35,6 +35,6 @@ variable "common_tags" {
   default = {
     Project     = "sa-demo"
     Environment = "Development"
-    Owner   = "DevOps Team"
+    Owner       = "DevOps Team"
   }
 }

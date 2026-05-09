@@ -1,5 +1,5 @@
 resource "aws_iam_user" "tf_user" {
-  
+
   name = var.tf_user_name
   path = var.tf_user_path
 
