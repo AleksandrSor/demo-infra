@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "tf_execution_role_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = concat(local.admin_users_arn,[ aws_iam_user.tf_user.arn ])
+      identifiers = concat(local.admin_users_arn, [aws_iam_user.tf_user.arn])
     }
   }
 }
