@@ -14,12 +14,15 @@ demo-infra/
 ├── .github/
 │   └── workflows/              # CI/CD pipelines (security scanning)
 ├── IaC/
+│   ├── backend.tftpl           # Backend template rendered by Terragrunt
+│   ├── config.hcl              # Shared Terragrunt locals and config loading
 │   ├── config.yaml             # Central environment and tagging config
 │   ├── root.hcl                # Shared Terragrunt root configuration
 │   └── demo-core/              # Core AWS bootstrap module
+│       ├── terragrunt.hcl      # Stack entrypoint and backend generation
 │       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
 │       ├── provider.tf         # AWS provider config + default tags
-│       ├── variables.tf        # Input variable: config_path + locals
+│       ├── variables.tf        # YAML config input and derived locals
 │       ├── data.tf             # Data sources (caller identity, region)
 │       ├── user.tf             # IAM automation user + access keys in Secrets Manager
 │       ├── role.tf             # IAM roles (execution + KMS)
@@ -34,7 +37,7 @@ Note: IaC/test is intentionally excluded from this README.
 
 ### IaC/demo-core
 
-Bootstrap module that sets up the foundational AWS resources needed before other modules can run:
+Bootstrap stack that sets up the foundational AWS resources needed before other modules can run:
 
 | Resource | Purpose |
 |---|---|
@@ -69,17 +72,33 @@ GitHub Actions workflows under `.github/workflows/`:
 
 ## Usage
 
+normal use
+```bash
+cd IaC
+
+terragrunt run --all -- plan
+terragrunt run --all -- apply
+```
+
+first init
 ```bash
 cd IaC/demo-core
+
 
 tofu init
 tofu plan
 tofu apply
+
+terragrunt apply
+
+cd ..
+terragrunt run --all -- plan
+terragrunt run --all -- apply
 ```
 
 ## Configuration
 
-The module reads most settings from IaC/config.yaml.
+Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from `IaC/config.yaml` and renders the backend configuration for the stack.
 
 | Config Key | Example | Description |
 |---|---|---|
@@ -95,4 +114,4 @@ The module reads most settings from IaC/config.yaml.
 
 | Variable | Default | Description |
 |---|---|---|
-| `config_path` | `../config.yaml` | Path to the YAML config consumed by the module |
+| `config_file` | `../config.yaml` | Path to the YAML config consumed by the module |

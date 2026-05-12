@@ -4,7 +4,7 @@ locals {
   config = local.config_hcl.locals.config
   
   backend_render_vars = {
-    kms_key_id        = "alias/tf-state-${local.config.project.name}-key"
+    kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
     key_spec          = "AES_256"
     state_bucket_name = "tf-state-${local.config.project.name}-${get_aws_account_id()}-${local.config.env.region}-an"
     region            = local.config.env.region
