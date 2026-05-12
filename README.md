@@ -14,11 +14,12 @@ demo-infra/
 ├── .github/
 │   └── workflows/              # CI/CD pipelines (security scanning)
 ├── IaC/
+│   ├── config.yaml             # Central environment and tagging config
+│   ├── root.hcl                # Shared Terragrunt root configuration
 │   └── demo-core/              # Core AWS bootstrap module
 │       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
 │       ├── provider.tf         # AWS provider config + default tags
-│       ├── variables.tf        # Input variables and common tags
-│       ├── locals.tf           # Local computed values (admin ARNs)
+│       ├── variables.tf        # Input variable: config_path + locals
 │       ├── data.tf             # Data sources (caller identity, region)
 │       ├── user.tf             # IAM automation user + access keys in Secrets Manager
 │       ├── role.tf             # IAM roles (execution + KMS)
@@ -28,6 +29,8 @@ demo-infra/
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
+
+Note: IaC/test is intentionally excluded from this README.
 
 ### IaC/demo-core
 
@@ -74,14 +77,22 @@ tofu plan
 tofu apply
 ```
 
-## Variables
+## Configuration
+
+The module reads most settings from IaC/config.yaml.
+
+| Config Key | Example | Description |
+|---|---|---|
+| `env.region` | `us-east-1` | AWS region |
+| `env.tf_user.name` | `tf-user` | IAM automation user name |
+| `env.tf_user.path` | `/automation/iac/` | IAM path for the user |
+| `env.tf_role_name` | `TFExecutionRole` | IAM execution role name |
+| `env.tf_extra_admin_users` | `["terraf1admin"]` | Extra IAM users with admin-level key access |
+| `project.name` | `demo-infra` | Project name prefix |
+| `common_tags` | `Project`, `Environment`, `Owner` | Default tags applied to resources |
+
+## Module Variable
 
 | Variable | Default | Description |
 |---|---|---|
-| `project_region` | `us-east-1` | AWS region to deploy into |
-| `project_name` | `sa-demo` | Project name prefix |
-| `tf_user_name` | `sa-demo-tf-user` | IAM automation user name |
-| `tf_user_path` | `/automation/iac/` | IAM path for the user |
-| `tf_role_name` | `TFExecutionRole` | Name of the IAM execution role |
-| `tf_extra_admin_user` | `terraf1admin` | Additional user granted admin access to KMS/policies |
-| `common_tags` | `Project`, `Environment`, `Owner` | Tags applied to all resources |
+| `config_path` | `../config.yaml` | Path to the YAML config consumed by the module |

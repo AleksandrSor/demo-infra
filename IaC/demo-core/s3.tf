@@ -1,7 +1,7 @@
 # 1. Create an S3 bucket for Terraform state storage
 resource "aws_s3_bucket" "tf_state" {
-  bucket = "tf-state-${var.project_name}"
-  bucket_namespace = "account-regional" 
+  bucket           = "tf-state-${local.config.project.name}-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.region}-an"
+  bucket_namespace = "account-regional"
 
   lifecycle {
     # for test purposes, we allow the bucket to be destroyed when the stack is deleted. In production, you may want to set this to true to prevent accidental deletion of the state bucket.
@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "tf_user_role_s3_access" {
     }
 
     actions = [
-      "s3:ListBucket"  
+      "s3:ListBucket"
     ]
 
     resources = [
@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "tf_user_role_s3_access" {
 
     actions = [
       "s3:PutObject",
-      "s3:GetObject",     
+      "s3:GetObject",
     ]
 
     resources = [
@@ -99,7 +99,7 @@ data "aws_iam_policy_document" "tf_user_role_s3_access" {
     actions = [
       "s3:PutObject",
       "s3:GetObject",
-      "s3:DeleteObject"     
+      "s3:DeleteObject"
     ]
 
     resources = [
