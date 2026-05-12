@@ -1,6 +1,6 @@
 locals {
 
-  config = yamldecode(file(var.config_path))
+  config = yamldecode(file(var.config_file))
 
   admin_user_arns = concat(
     ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"],
@@ -8,7 +8,7 @@ locals {
   )
 }
 
-variable "config_path" {
+variable "config_file" {
   type    = string
   default = "../config.yaml"
 }
