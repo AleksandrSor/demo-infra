@@ -14,11 +14,15 @@ demo-infra/
 ├── .github/
 │   └── workflows/              # CI/CD pipelines (security scanning)
 ├── IaC/
+│   ├── backend.tftpl           # Backend template rendered by Terragrunt
+│   ├── config.hcl              # Shared Terragrunt locals and config loading
+│   ├── config.yaml             # Central environment and tagging config
+│   ├── root.hcl                # Shared Terragrunt root configuration
 │   └── demo-core/              # Core AWS bootstrap module
+│       ├── terragrunt.hcl      # Stack entrypoint and backend generation
 │       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
 │       ├── provider.tf         # AWS provider config + default tags
-│       ├── variables.tf        # Input variables and common tags
-│       ├── locals.tf           # Local computed values (admin ARNs)
+│       ├── variables.tf        # YAML config input and derived locals
 │       ├── data.tf             # Data sources (caller identity, region)
 │       ├── user.tf             # IAM automation user + access keys in Secrets Manager
 │       ├── role.tf             # IAM roles (execution + KMS)
@@ -29,9 +33,11 @@ demo-infra/
 └── .gitignore
 ```
 
+Note: IaC/test is intentionally excluded from this README.
+
 ### IaC/demo-core
 
-Bootstrap module that sets up the foundational AWS resources needed before other modules can run:
+Bootstrap stack that sets up the foundational AWS resources needed before other modules can run:
 
 | Resource | Purpose |
 |---|---|
@@ -66,22 +72,49 @@ GitHub Actions workflows under `.github/workflows/`:
 
 ## Usage
 
+normal use
+```bash
+cd IaC
+
+terragrunt run --all -- plan
+terragrunt run --all -- apply
+```
+
+first init
 ```bash
 cd IaC/demo-core
 
 tofu init
 tofu plan
 tofu apply
+
+# enable plaintext_fallback_enabled in terragrunt.hcl for state migration
+sed -i 's/plaintext_fallback_enabled = false/plaintext_fallback_enabled = true/g' terragrunt.hcl
+terragrunt apply
+# disable plaintext_fallback_enabled 
+sed -i 's/plaintext_fallback_enabled = true/plaintext_fallback_enabled = false/g' terragrunt.hcl
+
+cd ..
+terragrunt run --all -- plan
+terragrunt run --all -- apply
 ```
 
-## Variables
+## Configuration
+
+Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from `IaC/config.yaml` and renders the backend configuration for the stack.
+
+| Config Key | Example | Description |
+|---|---|---|
+| `env.region` | `us-east-1` | AWS region |
+| `env.tf_user.name` | `tf-user` | IAM automation user name |
+| `env.tf_user.path` | `/automation/iac/` | IAM path for the user |
+| `env.tf_role_name` | `TFExecutionRole` | IAM execution role name |
+| `env.tf_extra_admin_users` | `["terraf1admin"]` | Extra IAM users with admin-level key access |
+| `project.name` | `demo-infra` | Project name prefix |
+| `common_tags` | `Project`, `Environment`, `Owner` | Default tags applied to resources |
+
+## Module Variable
 
 | Variable | Default | Description |
 |---|---|---|
-| `project_region` | `us-east-1` | AWS region to deploy into |
-| `project_name` | `sa-demo` | Project name prefix |
-| `tf_user_name` | `sa-demo-tf-user` | IAM automation user name |
-| `tf_user_path` | `/automation/iac/` | IAM path for the user |
-| `tf_role_name` | `TFExecutionRole` | Name of the IAM execution role |
-| `tf_extra_admin_user` | `terraf1admin` | Additional user granted admin access to KMS/policies |
-| `common_tags` | `Project`, `Environment`, `Owner` | Tags applied to all resources |
+| `config_file` | `../config.yaml` | Path to the YAML config consumed by the module |

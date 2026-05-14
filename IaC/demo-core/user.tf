@@ -1,7 +1,7 @@
 resource "aws_iam_user" "tf_user" {
 
-  name = var.tf_user_name
-  path = var.tf_user_path
+  name = local.config.env.tf_user.name
+  path = local.config.env.tf_user.path
 
 }
 
@@ -12,7 +12,7 @@ resource "aws_iam_access_key" "tf_user_key" {
 }
 
 resource "aws_secretsmanager_secret" "tf_user_key_id" {
-  name = "tf-user-${var.project_name}-key-id"
+  name = "tf-user-${local.config.project.name}-key-id"
 
   kms_key_id = aws_kms_alias.tf_state.name
 
@@ -25,7 +25,7 @@ resource "aws_secretsmanager_secret_version" "tf_user_key_id" {
 }
 
 resource "aws_secretsmanager_secret" "tf_user_key_secret" {
-  name = "tf-user-${var.project_name}-key-secret"
+  name = "tf-user-${local.config.project.name}-key-secret"
 
   kms_key_id = aws_kms_alias.tf_state.name
 

@@ -1,0 +1,44 @@
+terraform {
+
+  encryption {
+    %{~ if plaintext_fallback_enabled ~}
+    method "unencrypted" "migrate" {}
+    %{~ endif ~}
+
+    key_provider "aws_kms" "state" {
+      kms_key_id = "${kms_key_alias}"
+      region = "${region}"
+      key_spec = "${key_spec}"
+    }
+
+    method "aes_gcm" "aws_state" {
+      keys = key_provider.aws_kms.state
+    }
+
+    state {
+      method = method.aes_gcm.aws_state
+
+      %{~ if plaintext_fallback_enabled ~}
+      fallback {
+        method = method.unencrypted.migrate
+      }
+      %{~ else ~}
+      enforced = true
+      %{~ endif ~}
+    }
+
+    plan {
+      method = method.aes_gcm.aws_state
+
+      enforced = true
+    }
+  }
+
+  backend "s3" {
+    bucket         = "${state_bucket_name}"
+    key            = "${state_key}"
+    region         = "${region}"
+    use_lockfile   = true
+    encrypt        = true
+  }
+}

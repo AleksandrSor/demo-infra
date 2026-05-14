@@ -6,10 +6,10 @@ data "aws_iam_policy_document" "kms_tf_state_access" {
 
     principals {
       type        = "AWS"
-      identifiers = concat(local.admin_users_arn, [aws_iam_role.tf_kms_user_role.arn])
+      identifiers = concat(local.admin_user_arns, [aws_iam_role.tf_execution_role.arn])
     }
   }
-  # Terraform execution role should have permissions to use the KMS key for encrypting/decrypting tfstate
+
   statement {
     actions = [
       "kms:Encrypt",
@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "kms_tf_state_access" {
 
     principals {
       type        = "AWS"
-      identifiers = [aws_iam_role.tf_execution_role.arn]
+      identifiers = [aws_iam_role.tf_kms_user_role.arn]
     }
   }
 }
@@ -30,12 +30,12 @@ data "aws_iam_policy_document" "kms_tf_state_access" {
 resource "aws_kms_key" "tf_state" {
   description             = "KMS key for Terraform state encryption"
   deletion_window_in_days = 7
-  enable_key_rotation     = true # Best practice for security
+  enable_key_rotation     = true
 
   policy = data.aws_iam_policy_document.kms_tf_state_access.json
 }
 
 resource "aws_kms_alias" "tf_state" {
-  name          = "alias/tf-state-${var.project_name}-key"
+  name          = "alias/tf-state-${local.config.project.name}-key"
   target_key_id = aws_kms_key.tf_state.key_id
 }

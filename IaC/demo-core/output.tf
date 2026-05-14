@@ -2,7 +2,7 @@ output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
 
-output "aws_region" {
+output "region" {
   value = data.aws_region.current.region
 }
 
@@ -18,10 +18,18 @@ output "tf_user_arn" {
   value = aws_iam_user.tf_user.arn
 }
 
-output "tf_execute_role_arn" {
+output "admin_user_arns" {
+  value = local.admin_user_arns
+}
+
+output "tf_execution_role_arn" {
   value = aws_iam_role.tf_execution_role.arn
 }
 
-output "s3_bucket_name" {
+output "state_bucket_name" {
+  value = aws_s3_bucket.tf_state.bucket
+}
+
+output "state_bucket_domain_name" {
   value = aws_s3_bucket.tf_state.bucket_domain_name
 }

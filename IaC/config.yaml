@@ -1,0 +1,14 @@
+env:
+  region: us-east-1
+  tf_user:
+    name: tf-user
+    path: "/automation/iac/"
+  tf_role_name: TFExecutionRole
+  tf_extra_admin_users: 
+    - "terraf1admin"
+project:
+  name: &project_name demo-infra 
+common_tags:
+  Project: *project_name
+  Environment: Development
+  Owner: DevOps Team
