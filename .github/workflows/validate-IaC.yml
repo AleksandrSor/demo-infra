@@ -28,13 +28,13 @@ jobs:
 
       - name: Check terragrunt hcl formatting
         run: |
-          hcl fmt --check --diff
+          terragrunt hcl fmt --check --diff --non-interactive
 
       - name: Validate terragrunt HCL config
         run: |
-          hcl validate
+          terragrunt hcl validate --non-interactive
 
       # Not find better way to validate the terraform code, since terragrunt always try to fetch remote state
       - name: Validate tofu charts
         run: |
-          terragrunt validate --all
+          terragrunt validate --all --non-interactive
