@@ -1,0 +1,11 @@
+name: validate
+on:
+  workflow_call:
+
+jobs:
+  validate-IaC:
+    uses: ./.github/workflows/validate-IaC.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks
