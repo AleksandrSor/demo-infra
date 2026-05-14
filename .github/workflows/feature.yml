@@ -1,0 +1,21 @@
+name: feature
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+jobs:
+  scan:
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks        
+        packages: read # required to fetch internal or private CodeQL packs
+        actions: read # only required for workflows in private repositories
+  validate:
+    uses: ./.github/workflows/validate.yml
+    secrets: inherit
+    permissions:
+        security-events: write  # Required to upload SARIF results
+        contents: read  # Required for checkout and gitleaks
