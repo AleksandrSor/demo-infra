@@ -5,7 +5,8 @@ on:
 env:
   tg_version: '1.0.1'
   tofu_version: '1.12.0-beta1'
-  working_dir: 'IaC'
+  working_dir: './IaC'
+  IAC_QUICK_CHECK: 'true' # disable backend generation and some dependancies check
 
 jobs:
   scan:
@@ -13,29 +14,27 @@ jobs:
     runs-on: ubuntu-24.04-arm
     defaults:
       run:
-        working-directory: "./${{ env.working_dir }}"
+        working-directory: ${{ env.working_dir }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Check terragrunt HCL
-        uses: gruntwork-io/terragrunt-action@v3
-        with:
-          tofu_version: ${{ env.tofu_version }}
-          tg_version: ${{ env.tg_version }}
-          tg_dir: ${{ env.working_dir }}
-          tg_command: 'hcl fmt --check --diff'
       
-      - name: Check terragrunt HCL
+      - name: Install terragrunt and tofu
         uses: gruntwork-io/terragrunt-action@v3
         with:
           tofu_version: ${{ env.tofu_version }}
           tg_version: ${{ env.tg_version }}
-          tg_dir: ${{ env.working_dir }}
-          tg_command: 'validate'
+
+      - name: Check terragrunt hcl formatting
+        run: |
+          hcl fmt --check --diff
+
+      - name: Validate terragrunt HCL config
+        run: |
+          hcl validate
 
       # Not find better way to validate the terraform code, since terragrunt always try to fetch remote state
-      - name: tofu validate
+      - name: Validate tofu charts
         run: |
-          for d in ./*/ ; do (echo "$d" && cd "$d" && tofu init -backend=false && tofu validate); done
+          terragrunt validate --all

@@ -24,4 +24,5 @@ generate "backend" {
   path      = "backend.tf"
   if_exists = "overwrite"
   contents  = local.backend_render
+  disable   = get_env("IAC_QUICK_CHECK", "false") == "true"
 }

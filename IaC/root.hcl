@@ -4,12 +4,13 @@
 dependency "core" {
   config_path = "${get_terragrunt_dir()}/../demo-core"
 
-  mock_outputs_allowed_terraform_commands = ["init", "validate"]
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "hcl"]
   mock_outputs = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
     state_bucket_name = "tf-state-${local.config.project.name}-${get_aws_account_id()}-${local.config.env.region}-an"
     region            = local.config.env.region
   }
+  skip_outputs = get_env("IAC_QUICK_CHECK", "false") == "true"
 }
 
 locals {
@@ -33,4 +34,5 @@ generate "backend" {
   path      = "backend.tf"
   if_exists = "overwrite"
   contents  = templatefile(local.config_hcl.locals.backend_render_tpl, merge(local.backend_render_vars, dependency.core.outputs))
+  disable   = get_env("IAC_QUICK_CHECK", "false") == "true"
 }
