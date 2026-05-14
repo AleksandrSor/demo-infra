@@ -1,12 +1,13 @@
 locals {
   config_hcl = read_terragrunt_config(find_in_parent_folders("config.hcl"))
 
-  config = local.config_hcl.locals.config
+  config             = local.config_hcl.locals.config
+  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") ? "NA" : get_aws_account_id()
 
   backend_render_vars = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
     key_spec          = "AES_256"
-    state_bucket_name = "tf-state-${local.config.project.name}-${get_aws_account_id()}-${local.config.env.region}-an"
+    state_bucket_name = "tf-state-${local.config.project.name}-${local.get_aws_account_id}-${local.config.env.region}-an"
     region            = local.config.env.region
     state_key         = "${get_path_from_repo_root()}/tofu.tfstate"
     # Init stage!
