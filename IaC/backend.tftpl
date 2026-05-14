@@ -1,7 +1,9 @@
 terraform {
 
   encryption {
+    %{~ if plaintext_fallback_enabled ~}
     method "unencrypted" "migrate" {}
+    %{~ endif ~}
 
     key_provider "aws_kms" "state" {
       kms_key_id = "${kms_key_alias}"
@@ -16,11 +18,13 @@ terraform {
     state {
       method = method.aes_gcm.aws_state
 
-      # Remove the fallback block when all workspaces have been migrated to KMS encryption
+      %{~ if plaintext_fallback_enabled ~}
       fallback {
         method = method.unencrypted.migrate
       }
-      # enforced = true # Uncomment this line to enforce KMS encryption and disable fallback to unencrypted state
+      %{~ else ~}
+      enforced = true
+      %{~ endif ~}
     }
 
     plan {

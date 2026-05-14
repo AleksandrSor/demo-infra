@@ -84,12 +84,15 @@ first init
 ```bash
 cd IaC/demo-core
 
-
 tofu init
 tofu plan
 tofu apply
 
+# enable plaintext_fallback_enabled in terragrunt.hcl for state migration
+sed -i 's/plaintext_fallback_enabled = false/plaintext_fallback_enabled = true/g' terragrunt.hcl
 terragrunt apply
+# disable plaintext_fallback_enabled 
+sed -i 's/plaintext_fallback_enabled = true/plaintext_fallback_enabled = false/g' terragrunt.hcl
 
 cd ..
 terragrunt run --all -- plan
