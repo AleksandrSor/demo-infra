@@ -4,7 +4,7 @@
 dependency "core" {
   config_path = "${get_terragrunt_dir()}/../demo-core"
 
-  mock_outputs_allowed_terraform_commands = ["validate"]
+  mock_outputs_allowed_terraform_commands = ["init", "validate"]
   mock_outputs = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
     state_bucket_name = "tf-state-${local.config.project.name}-${get_aws_account_id()}-${local.config.env.region}-an"
@@ -16,10 +16,10 @@ locals {
   config_hcl = read_terragrunt_config(find_in_parent_folders("config.hcl"))
 
   config = local.config_hcl.locals.config
-  
+
   backend_render_vars = {
-    key_spec          = "AES_256"
-    state_key         = "${get_path_from_repo_root()}/tofu.tfstate"
+    key_spec                   = "AES_256"
+    state_key                  = "${get_path_from_repo_root()}/tofu.tfstate"
     plaintext_fallback_enabled = false
   }
 

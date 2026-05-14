@@ -2,7 +2,7 @@ locals {
   config_hcl = read_terragrunt_config(find_in_parent_folders("config.hcl"))
 
   config = local.config_hcl.locals.config
-  
+
   backend_render_vars = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
     key_spec          = "AES_256"
@@ -13,7 +13,7 @@ locals {
     plaintext_fallback_enabled = false # Enable it for init stage to migrate state from unencrypted state
   }
 
-  backend_render     = templatefile(local.config_hcl.locals.backend_render_tpl, local.backend_render_vars)
+  backend_render = templatefile(local.config_hcl.locals.backend_render_tpl, local.backend_render_vars)
 }
 
 inputs = {
