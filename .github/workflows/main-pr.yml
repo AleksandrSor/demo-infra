@@ -22,6 +22,10 @@ jobs:
         contents: read  # Required for checkout and gitleaks 
     needs: scan
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Auto-approve PR
         run: gh pr review ${{ github.event.pull_request.number }} --approve
         env:
