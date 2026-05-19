@@ -36,6 +36,13 @@ resource "aws_iam_role" "tf_execution_role" {
   assume_role_policy = data.aws_iam_policy_document.tf_execution_role_policy.json
 }
 
+# Attach AdministratorAccess Policy to the Role
+# TODO: more restrictive permissions can be applied here based on the principle of least privilege
+resource "aws_iam_role_policy_attachment" "admin_attachment" {
+  role       = aws_iam_role.tf_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
 data "aws_iam_policy_document" "tf_kms_user_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
