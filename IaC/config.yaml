@@ -6,8 +6,11 @@ env:
   tf_role_name: TFExecutionRole
   tf_extra_admin_users: 
     - "terraf1admin"
+  repository:
+    name: AleksandrSor/demo-infra
+    protected_environment: production
 project:
-  name: &project_name demo-infra 
+  name: &project_name demo-infra
 common_tags:
   Project: *project_name
   Environment: Development

@@ -8,6 +8,27 @@ data "aws_iam_policy_document" "tf_execution_role_policy" {
       identifiers = concat(local.admin_user_arns, [aws_iam_user.tf_user.arn])
     }
   }
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"]
+    }
+  }
 }
 
 resource "aws_iam_role" "tf_execution_role" {
