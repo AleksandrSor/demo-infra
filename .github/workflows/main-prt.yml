@@ -1,0 +1,20 @@
+name: main-prt
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - test/main
+
+concurrency: production
+
+jobs:
+  plan:
+    uses: ./.github/workflows/plan-IaC.yml
+    secrets: inherit
+    permissions:
+        contents: read  # Required for checkout and gitleaks
+        id-token: write # Required to request OIDC token for Terraform Cloud API authentication
+        pull-requests: write # Required to auto-approve PRs created by dependabot
