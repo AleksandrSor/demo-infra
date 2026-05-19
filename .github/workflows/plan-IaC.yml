@@ -1,0 +1,52 @@
+name: plan-IaC
+on:
+  workflow_call:
+
+env:
+  tg_version: '1.0.1'
+  tofu_version: '1.12.0-beta1'
+  working_dir: './IaC'
+
+permissions:
+  contents: read  # Required for checkout and gitleaks
+  id-token: write # Required to request OIDC token for Terraform Cloud API authentication
+  pull-requests: write # Required to auto-approve PRs created by dependabot
+
+jobs:
+  plan:
+    name: terragrunt-plan
+    environment: production
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        working-directory: ${{ env.working_dir }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Auto-approve PR
+        run: gh pr review ${{ github.event.pull_request.number }} --approve
+        if: github.event.pull_request.user.login == github.repository_owner
+    
+      - name: Configure AWS Credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+            aws-region: ${{ vars.AWS_REGION }}
+            role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
+            output-credentials: true
+
+      - name: get caller identity
+        run: |
+            aws sts get-caller-identity
+      
+    #   - name: Install terragrunt and tofu
+    #     uses: gruntwork-io/terragrunt-action@v3
+    #     with:
+    #       tofu_version: ${{ env.tofu_version }}
+    #       tg_version: ${{ env.tg_version }}
+
+    #   - name: Plan terragrunt configuration
+    #     run: |
+    #       terragrunt plan --all --non-interactive
