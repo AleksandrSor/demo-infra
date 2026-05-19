@@ -24,3 +24,5 @@ jobs:
     steps:
       - name: Auto-approve PR
         run: gh pr review ${{ github.event.pull_request.number }} --approve
+        env:
+          GH_TOKEN: ${{ github.token }}
