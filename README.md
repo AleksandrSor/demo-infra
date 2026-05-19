@@ -25,9 +25,10 @@ demo-infra/
 │       ├── variables.tf        # YAML config input and derived locals
 │       ├── data.tf             # Data sources (caller identity, region)
 │       ├── user.tf             # IAM automation user + access keys in Secrets Manager
-│       ├── role.tf             # IAM roles (execution + KMS)
+│       ├── role.tf             # IAM roles (execution + KMS + OIDC trust)
 │       ├── kms.tf              # KMS key for encryption
 │       ├── s3.tf               # S3 bucket + policy for tfstate
+│       ├── oidc.tf             # GitHub Actions OIDC provider
 │       └── output.tf           # Useful bootstrap outputs
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
@@ -45,9 +46,10 @@ Bootstrap stack that sets up the foundational AWS resources needed before other 
 | `aws_iam_access_key` | Access key for the automation user |
 | `aws_secretsmanager_secret` | Stores access key ID and secret (KMS-encrypted) |
 | `aws_kms_key` | KMS key used for state/secret encryption |
-| `aws_iam_role` (execution) | Role assumed by the automation user to run Tofu |
+| `aws_iam_role` (execution) | Role assumed by the automation user or GitHub Actions via OIDC |
 | `aws_iam_role` (kms) | Role for KMS encryption operations |
 | `aws_s3_bucket` | Terraform state bucket with versioning and encryption |
+| `aws_iam_openid_connect_provider` | GitHub Actions OIDC provider for keyless auth |
 
 ---
 
@@ -57,11 +59,17 @@ GitHub Actions workflows under `.github/workflows/`:
 
 | Workflow | Trigger | Description |
 |---|---|---|
-| `main.yml` | push / PR to `main`, `feature/**` | Orchestrates all scan jobs |
-| `scan.yml` | reusable | Orchestrates reusable scan workflows |
+| `main.yml` | push to `main` | Security scans on merge |
+| `main-pr.yml` | PR to `main` | Security scans + auto-approve PR (owner only) |
+| `main-prt.yml` | PR to `main` (pull_request_target), push to `test/main` | Terragrunt plan against production |
+| `feature.yml` | push to `feature/**` | Security scans + IaC validation |
+| `scan.yml` | reusable | Orchestrates CodeQL, Gitleaks, Trivy |
 | `scan-codeql.yml` | reusable | CodeQL static analysis |
 | `scan-gitleaks.yml` | reusable | Secret scanning |
 | `scan-trivy.yml` | reusable | IaC config vulnerability scanning |
+| `validate.yml` | reusable | Delegates to `validate-IaC.yml` |
+| `validate-IaC.yml` | reusable | HCL formatting, HCL validation, tofu validate |
+| `plan-IaC.yml` | reusable | Terragrunt plan with OIDC AWS auth, posts summary to job |
 
 ---
 
@@ -110,6 +118,8 @@ Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from 
 | `env.tf_user.path` | `/automation/iac/` | IAM path for the user |
 | `env.tf_role_name` | `TFExecutionRole` | IAM execution role name |
 | `env.tf_extra_admin_users` | `["terraf1admin"]` | Extra IAM users with admin-level key access |
+| `env.repository.name` | `owner/demo-infra` | GitHub repo used to scope the OIDC trust policy |
+| `env.repository.protected_environment` | `production` | GitHub environment allowed to assume the execution role |
 | `project.name` | `demo-infra` | Project name prefix |
 | `common_tags` | `Project`, `Environment`, `Owner` | Default tags applied to resources |
 
