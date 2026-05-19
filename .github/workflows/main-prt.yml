@@ -3,6 +3,7 @@ on:
   pull_request_target:
     branches:
       - main
+      - feature/pipeline-2
     types: [opened, synchronize, reopened]
 
 jobs:
