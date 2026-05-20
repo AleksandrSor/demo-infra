@@ -1,4 +1,4 @@
-name: plan-IaC
+name: deploy-IaC
 on:
   workflow_call:
 
@@ -13,10 +13,10 @@ permissions:
 
 jobs:
   plan:
-    name: terragrunt-plan
+    name: terragrunt-apply
     environment: 
       name: production
-      deployment: false
+      deployment: true
     runs-on: ubuntu-24.04-arm
     defaults:
       run:
@@ -44,9 +44,9 @@ jobs:
           tofu_version: ${{ env.tofu_version }}
           tg_version: ${{ env.tg_version }}
 
-      - name: Plan terragrunt configuration
+      - name: Apply terragrunt configuration
         run: |
-          echo "### 🏗️ Terragrunt Plan Output" >> $GITHUB_STEP_SUMMARY
+          echo "### Terragrunt Apply Output" >> $GITHUB_STEP_SUMMARY
           echo '```terraform' >> $GITHUB_STEP_SUMMARY
-          terragrunt run --all --non-interactive --log-format bare -- plan >> $GITHUB_STEP_SUMMARY
+          terragrunt run --all --non-interactive --log-format bare -- apply -auto-approve >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
