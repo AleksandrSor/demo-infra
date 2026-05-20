@@ -12,8 +12,8 @@ permissions:
   id-token: write # Required to request OIDC token for Terraform Cloud API authentication
 
 jobs:
-  plan:
-    name: terragrunt-apply
+  deploy:
+    name: IaC Deploy
     environment: 
       name: production
       deployment: true
