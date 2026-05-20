@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+      - test/main
+
+concurrency: production
 
 jobs:
   scan:
@@ -13,3 +16,10 @@ jobs:
         contents: read  # Required for checkout and gitleaks        
         packages: read # required to fetch internal or private CodeQL packs
         actions: read # only required for workflows in private repositories
+  deploy-IaC:
+    uses: ./.github/workflows/deploy-IaC.yml
+    needs: scan
+    secrets: inherit
+    permissions:
+        contents: read  # Required for checkout and gitleaks
+        id-token: write # Required to request OIDC token for Terraform Cloud API authentication
