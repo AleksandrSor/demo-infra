@@ -15,5 +15,5 @@ resource "aws_subnet" "node_subnet" {
 resource "aws_route_table_association" "node_subnet_association" {
   for_each       = local.config.network.node_subnets
   subnet_id      = aws_subnet.node_subnet[each.key].id
-  route_table_id = aws_route_table.public.id
+  route_table_id = aws_route_table.public.id # TODO: make it configurable to support private subnets
 }

@@ -7,7 +7,7 @@ dependency "core" {
   mock_outputs_allowed_terraform_commands = ["init", "validate", "hcl"]
   mock_outputs = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"
-    state_bucket_name = "tf-state-${local.config.project.name}-${get_aws_account_id()}-${local.config.env.region}-an"
+    state_bucket_name = "tf-state-${local.config.project.name}-${local.get_aws_account_id}-${local.config.env.region}-an"
     region            = local.config.env.region
   }
   skip_outputs = get_env("IAC_QUICK_CHECK", "false") == "true"
@@ -17,6 +17,8 @@ locals {
   config_hcl = read_terragrunt_config(find_in_parent_folders("config.hcl"))
 
   config = local.config_hcl.locals.config
+
+  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") ? "NA" : get_aws_account_id()
 
   backend_render_vars = {
     key_spec                   = "AES_256"
