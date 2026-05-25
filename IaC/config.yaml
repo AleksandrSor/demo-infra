@@ -16,10 +16,10 @@ network:
   vpc_secondary_cidr: "100.64.0.0/16"
   node_subnets:
     node-1:
-      cidr: "10.51.0.0/19"
+      cidr: "10.10.0.0/19"
       az: &node1az us-east-1a
     node-2:
-      cidr: "10.51.32.0/19"
+      cidr: "10.10.32.0/19"
       az: &node2az us-east-1b
   pod_subnets:
     pod-1:
@@ -30,9 +30,16 @@ network:
       az: *node2az
   alb_subnets:
     alb-1:
-      cidr: "10.10.128.0/19"
+      cidr: "10.10.64.0/19"
       az: *node1az
     alb-2:
+      cidr: "10.10.96.0/19"
+      az: *node2az
+  nlb_subnets:
+    nlb-1:
+      cidr: "10.10.128.0/19"
+      az: *node1az
+    nlb-2:
       cidr: "10.10.160.0/19"
       az: *node2az
 common_tags:
