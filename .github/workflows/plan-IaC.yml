@@ -25,6 +25,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: refs/pull/${{ github.event.number }}/merge
+        # It is running against protected environment, which requires PR to be approved
+        # so consider it as safe to checkout merge_request code
     
       - name: Configure AWS Credentials
         id: creds

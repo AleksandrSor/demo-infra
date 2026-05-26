@@ -6,3 +6,4 @@
 **/*.tfstate*
 **/.terragrunt-cache
 IaC/test
+**/devcontainer-lock.json
