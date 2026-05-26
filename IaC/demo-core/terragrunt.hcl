@@ -2,7 +2,7 @@ locals {
   config_hcl = read_terragrunt_config(find_in_parent_folders("config.hcl"))
 
   config             = local.config_hcl.locals.config
-  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") ? "NA" : get_aws_account_id()
+  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") == "true" ? "NA" : get_aws_account_id()
 
   backend_render_vars = {
     kms_key_alias     = "alias/tf-state-${local.config.project.name}-key"

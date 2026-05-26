@@ -18,7 +18,7 @@ locals {
 
   config = local.config_hcl.locals.config
 
-  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") ? "NA" : get_aws_account_id()
+  get_aws_account_id = get_env("IAC_QUICK_CHECK", "false") == "true" ? "NA" : get_aws_account_id()
 
   backend_render_vars = {
     key_spec                   = "AES_256"
