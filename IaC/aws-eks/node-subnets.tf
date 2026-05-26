@@ -6,9 +6,10 @@ resource "aws_subnet" "node_subnet" {
   cidr_block                          = each.value.cidr
   availability_zone                   = each.value.az
   private_dns_hostname_type_on_launch = "resource-name"
+  map_public_ip_on_launch             = true # TODO: make it configurable to support private subnets
 
   tags = {
-    Name = "${local.config.project.name}-${each.key}"
+    Name                                              = "${local.config.project.name}-${each.key}"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
   }
 }

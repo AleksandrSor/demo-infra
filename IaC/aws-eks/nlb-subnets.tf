@@ -8,8 +8,8 @@ resource "aws_subnet" "nlb_subnet" {
   private_dns_hostname_type_on_launch = "resource-name"
 
   tags = {
-    Name = "${local.config.project.name}-${each.key}"
-    "kubernetes.io/role/internal-elb" = "1"
+    Name                                              = "${local.config.project.name}-${each.key}"
+    "kubernetes.io/role/internal-elb"                 = "1"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
   }
 }

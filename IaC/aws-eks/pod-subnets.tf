@@ -8,7 +8,7 @@ resource "aws_subnet" "pod_subnet" {
   private_dns_hostname_type_on_launch = "resource-name"
 
   tags = {
-    Name = "${local.config.project.name}-${each.key}"
+    Name                                              = "${local.config.project.name}-${each.key}"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
   }
 
@@ -18,5 +18,5 @@ resource "aws_subnet" "pod_subnet" {
 resource "aws_route_table_association" "pod_subnet_association" {
   for_each       = local.config.network.pod_subnets
   subnet_id      = aws_subnet.pod_subnet[each.key].id
-  route_table_id = aws_route_table.public.id # TODO: make it configurable to support private subnets
+  route_table_id = aws_route_table.private.id #External SNAT or NAT Gateway is required
 }
