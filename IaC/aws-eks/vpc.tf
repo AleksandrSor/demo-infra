@@ -33,6 +33,8 @@ resource "aws_route_table" "public" {
   tags = {
     Name = "${local.config.project.name}-public-rt"
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.secondary_cidr]
 }
 
 # resource "aws_route" "local_cidr" {
@@ -60,4 +62,6 @@ resource "aws_route_table" "private" {
   tags = {
     Name = "${local.config.project.name}-private-rt"
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.secondary_cidr]
 }
