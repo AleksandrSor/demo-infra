@@ -7,7 +7,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
   vpc_id     = aws_vpc.main.id
-  count      = coalesce(try(local.config.network.vpc_secondary_cidr, ""), "") != "" ? 1 : 0
+  #count      = coalesce(try(local.config.network.vpc_secondary_cidr, ""), "") != "" ? 1 : 0
   cidr_block = local.config.network.vpc_secondary_cidr
 }
 
@@ -36,19 +36,6 @@ resource "aws_route_table" "public" {
 
   depends_on = [aws_vpc_ipv4_cidr_block_association.secondary_cidr]
 }
-
-# resource "aws_route" "local_cidr" {
-#   route_table_id         = aws_route_table.public.id
-#   destination_cidr_block = local.config.network.vpc_cidr
-#   gateway_id             = "local"
-# }
-
-# resource "aws_route" "secondary_cidr" {
-#   route_table_id         = aws_route_table.public.id
-#   destination_cidr_block = local.config.network.vpc_secondary_cidr
-#   gateway_id             = "local"
-#   count      = coalesce(try(local.config.network.vpc_secondary_cidr, ""), "") != "" ? 1 : 0
-# }
 
 resource "aws_route" "internet_gateway" {
   route_table_id         = aws_route_table.public.id
