@@ -6,7 +6,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  vpc_id     = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
   #count      = coalesce(try(local.config.network.vpc_secondary_cidr, ""), "") != "" ? 1 : 0
   cidr_block = local.config.network.vpc_secondary_cidr
 }
@@ -17,6 +17,28 @@ resource "aws_internet_gateway" "gw" {
   tags = {
     Name = "${local.config.project.name}-igw"
   }
+}
+
+resource "aws_default_security_group" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${local.config.project.name}-main-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "main" {
+  security_group_id = aws_default_security_group.main.id
+  referenced_security_group_id = aws_default_security_group.main.id
+
+  ip_protocol = "-1"
+}
+
+resource "aws_vpc_security_group_egress_rule" "main" {
+  security_group_id = aws_default_security_group.main.id
+
+  ip_protocol = "-1"
+  cidr_ipv4    = "0.0.0.0/0"
 }
 
 resource "aws_default_route_table" "main" {
