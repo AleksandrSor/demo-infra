@@ -19,6 +19,28 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
+resource "aws_default_security_group" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${local.config.project.name}-main-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "main" {
+  security_group_id = aws_default_security_group.main.id
+  referenced_security_group_id = aws_default_security_group.main.id
+
+  ip_protocol = "-1"
+}
+
+resource "aws_vpc_security_group_egress_rule" "main" {
+  security_group_id = aws_default_security_group.main.id
+
+  ip_protocol = "-1"
+  cidr_ipv4    = "0.0.0.0/0"
+}
+
 resource "aws_default_route_table" "main" {
   default_route_table_id = aws_vpc.main.default_route_table_id
 
