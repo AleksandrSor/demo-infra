@@ -3,7 +3,7 @@
 
 # SSM IAM Role
 resource "aws_iam_role" "ssm_role" {
-  name = "ssm-role"
+  name = "${local.config.project.name}-ssm-role"
   path = "/service-role/"
 
   assume_role_policy = jsonencode({
@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "ssm_s3_bucket_access" {
 }
 
 resource "aws_iam_role_policy" "ssm_role_s3_bucket_access_policy" {
-  name   = "ssm-role-s3-bucket-access-policy"
+  name   = "${local.config.project.name}-ssm-role-s3-bucket-access"
   role   = aws_iam_role.ssm_role.id
   policy = data.aws_iam_policy_document.ssm_s3_bucket_access.json
 }
