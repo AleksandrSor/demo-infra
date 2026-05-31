@@ -39,6 +39,7 @@ demo-infra/
 │       ├── pod-subnets.tf      # Pod secondary CIDR subnets
 │       ├── alb-subnets.tf      # ALB subnets and associations
 │       └── nlb-subnets.tf      # NLB subnets and associations
+|       └── ssm.tf              # Default Host Management Configuration
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
@@ -71,6 +72,9 @@ stack for EKS:
 | `aws_subnet` (node/pod/alb/nlb) | Dedicated subnet groups per workload type |
 | `aws_route_table` + associations | Public/private route control for subnets |
 | `aws_internet_gateway` | Internet egress for public routing |
+| `aws_ssm_service_setting` | Default EC2 instance management role for SSM |
+| `aws_iam_role` (ssm) | IAM role used by SSM managed instances |
+
 
 ---
 
@@ -84,6 +88,8 @@ GitHub Actions workflows under `.github/workflows/`:
 | `main-pr.yml` | PR to `main` | Security scans + auto-approve PR (owner only) |
 | `main-prt.yml` | PR to `main` (pull_request_target), push to `test/main` | Terragrunt plan against production |
 | `feature.yml` | push to `feature/**` | Security scans + IaC validation |
+| `deploy-IaC.yml` | reusable | Terragrunt apply with OIDC AWS auth, posts summary to job |
+| `plan-IaC.yml` | reusable | Terragrunt plan with OIDC AWS auth, posts summary to job |
 | `scan.yml` | reusable | Orchestrates CodeQL, Gitleaks, Trivy |
 | `scan-codeql.yml` | reusable | CodeQL static analysis |
 | `scan-gitleaks.yml` | reusable | Secret scanning |

@@ -1,5 +1,4 @@
-# Default Host Management Configuration is account wide
-# so do not suite to be in a module, but can be used by multiple EKS clusters in the same account/region
+# Default Host Management Configuration is region wide
 
 # SSM IAM Role
 resource "aws_iam_role" "ssm_role" {
@@ -74,7 +73,7 @@ resource "aws_iam_role_policy" "ssm_role_s3_bucket_access_policy" {
 }
 
 
-resource "aws_ssm_service_setting" "test_setting" {
+resource "aws_ssm_service_setting" "ssm_role_setting" {
   setting_id    = "arn:aws:ssm:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:servicesetting/ssm/managed-instance/default-ec2-instance-management-role"
   setting_value = "service-role/${aws_iam_role.ssm_role.name}"
 }

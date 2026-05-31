@@ -28,17 +28,23 @@ resource "aws_default_security_group" "main" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "main" {
-  security_group_id = aws_default_security_group.main.id
+  security_group_id            = aws_default_security_group.main.id
   referenced_security_group_id = aws_default_security_group.main.id
 
   ip_protocol = "-1"
+
+  description = "Allow all within the sg"
 }
 
+# trivy:ignore:AWS-0104
+# it's a default security group, so it ok to allow all outbound traffic
 resource "aws_vpc_security_group_egress_rule" "main" {
   security_group_id = aws_default_security_group.main.id
 
   ip_protocol = "-1"
-  cidr_ipv4    = "0.0.0.0/0"
+  cidr_ipv4   = "0.0.0.0/0"
+
+  description = "Allow all outbound traffic"
 }
 
 resource "aws_default_route_table" "main" {
