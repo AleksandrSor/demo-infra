@@ -42,6 +42,13 @@ network:
     nlb-2:
       cidr: "10.10.160.0/19"
       az: *node2az
+eks:
+  version: "1.35"
+  nodes:
+    desired_capacity: 1
+    max_capacity: 2
+    min_capacity: 1
+    type: t4g.nano
 common_tags:
   Project: *project_name
   Environment: Development
