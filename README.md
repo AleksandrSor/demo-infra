@@ -32,14 +32,21 @@ demo-infra/
 │       └── output.tf           # Useful bootstrap outputs
 │   └── aws-eks/                # stack for EKS
 │       ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
+│       ├── terraform.tf         # Provider requirements (AWS ~> 6.0)
+│       ├── data.tf              # Data sources (caller identity, region)
 │       ├── provider.tf         # AWS provider config + default tags
 │       ├── variables.tf        # YAML config input and local values
 │       ├── vpc.tf              # VPC, IGW, route tables
 │       ├── node-subnets.tf     # Worker node subnets
 │       ├── pod-subnets.tf      # Pod secondary CIDR subnets
 │       ├── alb-subnets.tf      # ALB subnets and associations
-│       └── nlb-subnets.tf      # NLB subnets and associations
-|       └── ssm.tf              # Default Host Management Configuration
+│       ├── nlb-subnets.tf      # NLB subnets and associations
+│       ├── eks-nodes-iam-roles.tf # IAM role and instance profile for EKS nodes
+│       ├── eks-nodes-secgroups.tf # Security group rules for EKS nodes
+│       ├── eks-nodes-template.tf  # Launch template for self-managed nodes
+│       ├── eks-nodes-group.tf     # Auto Scaling Group for EKS nodes
+│       ├── ssm.tf              # Default Host Management Configuration
+│       └── ec2-test.tf         # Test AMI lookup and optional EC2 snippets
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
@@ -63,17 +70,25 @@ Bootstrap stack that sets up the foundational AWS resources needed before other 
 
 ### IaC/aws-eks
 
-stack for EKS:
+stack for EKS networking and self-managed worker nodes:
 
 | Resource | Purpose |
 |---|---|
 | `aws_vpc` | Primary VPC for cluster networking |
 | `aws_vpc_ipv4_cidr_block_association` | Optional secondary CIDR for pod IPs |
+| `aws_default_security_group` | Baseline VPC security group configuration |
+| `aws_default_network_acl` | Baseline VPC network ACL configuration |
 | `aws_subnet` (node/pod/alb/nlb) | Dedicated subnet groups per workload type |
 | `aws_route_table` + associations | Public/private route control for subnets |
 | `aws_internet_gateway` | Internet egress for public routing |
+| `aws_launch_template` | Launch template for self-managed EKS worker nodes |
+| `aws_autoscaling_group` | Worker node capacity management |
+| `aws_iam_role` + `aws_iam_instance_profile` (nodes) | Node IAM permissions and instance profile |
+| `aws_security_group` (nodes) | Security group for EKS workers |
 | `aws_ssm_service_setting` | Default EC2 instance management role for SSM |
 | `aws_iam_role` (ssm) | IAM role used by SSM managed instances |
+| `data.aws_ssm_parameter` (Bottlerocket AMI) | Resolves latest node AMI by EKS version/architecture |
+| `data.aws_ec2_instance_type` | Validates node instance type details |
 
 
 ---
@@ -151,6 +166,11 @@ Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from 
 | `project.name` | `demo-infra` | Project name prefix |
 | `network.vpc_cidr` | `10.10.0.0/16` | Primary VPC CIDR for aws-eks stack |
 | `network.vpc_secondary_cidr` | `100.64.0.0/16` | Secondary CIDR used for pod subnet ranges |
+| `eks.version` | `1.35` | EKS version used for Bottlerocket AMI lookup |
+| `eks.nodes.type` | `t4g.nano` | Instance type for self-managed EKS nodes |
+| `eks.nodes.desired_capacity` | `1` | Desired node count |
+| `eks.nodes.min_capacity` | `1` | Minimum node count |
+| `eks.nodes.max_capacity` | `2` | Maximum node count |
 | `common_tags` | `Project`, `Environment`, `Owner` | Default tags applied to resources |
 
 ## Module Variable
