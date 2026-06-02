@@ -45,9 +45,9 @@ network:
 eks:
   version: "1.35"
   nodes:
-    desired_capacity: 0
+    desired_capacity: 1
     max_capacity: 2
-    min_capacity: 0
+    min_capacity: 1
     type: t4g.nano
   service_cidr: "10.254.0.0/16"
 common_tags:

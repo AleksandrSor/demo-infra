@@ -45,8 +45,7 @@ demo-infra/
 │       ├── eks-nodes-secgroups.tf # Security group rules for EKS nodes
 │       ├── eks-nodes-template.tf  # Launch template for self-managed nodes
 │       ├── eks-nodes-group.tf     # Auto Scaling Group for EKS nodes
-│       ├── ssm.tf              # Default Host Management Configuration
-│       └── ec2-test.tf         # Test AMI lookup and optional EC2 snippets
+│       └── ssm.tf              # Default Host Management Configuration
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```

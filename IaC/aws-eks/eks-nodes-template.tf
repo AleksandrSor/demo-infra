@@ -15,15 +15,15 @@ resource "aws_launch_template" "eks_nodes" {
     arn = aws_iam_instance_profile.eks_nodes.arn
   }
 
-  # Essential for self-managed nodes to join the cluster
-  #   user_data = base64encode(<<-EOT
-  #     #!/bin/bash
-  #     set -o xtrace
-  #     /etc/eks/bootstrap.sh ${var.cluster_name} \
-  #       --b64-cluster-ca ${var.cluster_ca_cert} \
-  #       --apiserver-endpoint ${var.cluster_endpoint}
-  #   EOT
-  #   )
+  user_data = base64encode(<<-EOT
+    [settings.kubernetes]
+    cluster-name = "${aws_eks_cluster.cluster.name}"
+    api-server = "${aws_eks_cluster.cluster.endpoint}"
+    cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
+    max-pods-mode = "default"
+    max-pods = "110"
+  EOT
+  )
 
   network_interfaces {
     associate_public_ip_address = true
