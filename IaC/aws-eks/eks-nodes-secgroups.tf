@@ -5,6 +5,7 @@ resource "aws_security_group" "eks_nodes" {
 
   tags = {
     Name = "${local.config.project.name}-eks-nodes-sg"
+    # "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
   }
 }
 

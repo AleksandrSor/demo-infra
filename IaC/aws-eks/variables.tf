@@ -14,3 +14,9 @@ variable "config_file" {
   type    = string
   default = "../config.yaml"
 }
+
+variable "public_access_cidrs" {
+  description = "A list of CIDR blocks allowed to access the EKS cluster endpoint"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}

@@ -16,14 +16,14 @@ resource "aws_launch_template" "eks_nodes" {
   }
 
   # Essential for self-managed nodes to join the cluster
-#   user_data = base64encode(<<-EOT
-#     #!/bin/bash
-#     set -o xtrace
-#     /etc/eks/bootstrap.sh ${var.cluster_name} \
-#       --b64-cluster-ca ${var.cluster_ca_cert} \
-#       --apiserver-endpoint ${var.cluster_endpoint}
-#   EOT
-#   )
+  #   user_data = base64encode(<<-EOT
+  #     #!/bin/bash
+  #     set -o xtrace
+  #     /etc/eks/bootstrap.sh ${var.cluster_name} \
+  #       --b64-cluster-ca ${var.cluster_ca_cert} \
+  #       --apiserver-endpoint ${var.cluster_endpoint}
+  #   EOT
+  #   )
 
   network_interfaces {
     associate_public_ip_address = true
@@ -33,7 +33,7 @@ resource "aws_launch_template" "eks_nodes" {
   metadata_options {
     http_tokens = "required"
   }
-  
+
   lifecycle {
     create_before_destroy = true
   }

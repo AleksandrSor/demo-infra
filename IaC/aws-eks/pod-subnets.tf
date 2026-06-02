@@ -10,6 +10,7 @@ resource "aws_subnet" "pod_subnet" {
   tags = {
     Name                                              = "${local.config.project.name}-${each.key}"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
+    "kubernetes.io/role/cni"                          = "1"
   }
 
   depends_on = [aws_vpc_ipv4_cidr_block_association.secondary_cidr]
@@ -19,4 +20,8 @@ resource "aws_route_table_association" "pod_subnet_association" {
   for_each       = local.config.network.pod_subnets
   subnet_id      = aws_subnet.pod_subnet[each.key].id
   route_table_id = aws_route_table.private.id #External SNAT or NAT Gateway is required
+}
+
+output "pod_subnet_ids" {
+  value = [for s in aws_subnet.pod_subnet : s.id]
 }
