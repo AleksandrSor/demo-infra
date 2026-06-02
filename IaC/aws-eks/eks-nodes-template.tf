@@ -30,6 +30,10 @@ resource "aws_launch_template" "eks_nodes" {
     security_groups             = [aws_security_group.eks_nodes.id]
   }
 
+  metadata_options {
+    http_tokens = "required"
+  }
+  
   lifecycle {
     create_before_destroy = true
   }
