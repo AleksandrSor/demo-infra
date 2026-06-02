@@ -36,8 +36,8 @@ resource "aws_vpc_security_group_ingress_rule" "main" {
   description = "Allow all within the sg"
 }
 
-# trivy:ignore:AWS-0104
 # it's a default security group, so it ok to allow all outbound traffic
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "main" {
   security_group_id = aws_default_security_group.main.id
 
@@ -45,6 +45,36 @@ resource "aws_vpc_security_group_egress_rule" "main" {
   cidr_ipv4   = "0.0.0.0/0"
 
   description = "Allow all outbound traffic"
+}
+
+resource "aws_default_network_acl" "main" {
+  default_network_acl_id = aws_vpc.main.default_network_acl_id
+
+  ingress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  lifecycle {
+    ignore_changes = [subnet_ids]
+  }
+
+  tags = {
+    Name = "${local.config.project.name}-main-nacl"
+  }
 }
 
 resource "aws_default_route_table" "main" {
