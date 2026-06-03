@@ -5,6 +5,7 @@ resource "aws_security_group" "eks_nodes" {
 
   tags = {
     Name = "${local.config.project.name}-eks-nodes-sg"
+    # "kubernetes.io/cluster/${local.eks_cluster_name}" = "owned"
   }
 }
 
@@ -17,6 +18,15 @@ resource "aws_vpc_security_group_ingress_rule" "eks_nodes_allow_all" {
   description = "Allow all within the sg"
 }
 
+resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_self" {
+  security_group_id            = aws_security_group.eks_nodes.id
+  referenced_security_group_id = aws_security_group.eks_nodes.id
+
+  ip_protocol = "-1"
+
+  description = "Allow all outbound traffic to self"
+}
+
 resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all" {
   security_group_id = aws_security_group.eks_nodes.id
 
@@ -24,4 +34,24 @@ resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all" {
   cidr_ipv4   = "0.0.0.0/0"
 
   description = "Allow all outbound traffic"
+}
+
+
+# EKS Control Plane
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_allow_control_plane" {
+  security_group_id            = aws_security_group.eks_nodes.id
+  referenced_security_group_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
+
+  ip_protocol = "-1"
+
+  description = "Allow all inbound traffic from control plane"
+}
+
+resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_control_plane" {
+  security_group_id            = aws_security_group.eks_nodes.id
+  referenced_security_group_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
+
+  ip_protocol = "-1"
+
+  description = "Allow all outbound traffic to control plane"
 }

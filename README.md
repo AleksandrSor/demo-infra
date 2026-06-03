@@ -45,8 +45,11 @@ demo-infra/
 │       ├── eks-nodes-secgroups.tf # Security group rules for EKS nodes
 │       ├── eks-nodes-template.tf  # Launch template for self-managed nodes
 │       ├── eks-nodes-group.tf     # Auto Scaling Group for EKS nodes
-│       ├── ssm.tf              # Default Host Management Configuration
-│       └── ec2-test.tf         # Test AMI lookup and optional EC2 snippets
+│       ├── eks-cluster.tf         # EKS cluster and control plane IAM role
+│       ├── eks-cluster-secgroup.tf # Control plane <-> nodes SG rules
+│       ├── eks-cluster-access.tf  # EKS access entries and admin policy mapping
+│       ├── eks-cluster-oidc.tf    # EKS OIDC provider discovery and setup
+│       └── ssm.tf              # Default Host Management Configuration
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
@@ -85,6 +88,12 @@ stack for EKS networking and self-managed worker nodes:
 | `aws_autoscaling_group` | Worker node capacity management |
 | `aws_iam_role` + `aws_iam_instance_profile` (nodes) | Node IAM permissions and instance profile |
 | `aws_security_group` (nodes) | Security group for EKS workers |
+| `aws_eks_cluster` | EKS control plane with API auth mode and network settings |
+| `aws_iam_role` (cluster) + policy attachments | IAM role used by EKS control plane |
+| `aws_eks_access_entry` + `aws_eks_access_policy_association` | IAM principal access mapping for nodes and admins |
+| `aws_iam_openid_connect_provider` (eks) | OIDC provider for Kubernetes service account federation |
+| `data.tls_certificate` (eks) | Cluster OIDC certificate thumbprint discovery |
+| `aws_vpc_security_group_ingress_rule`/`egress_rule` (control plane) | Enables control plane and node communication |
 | `aws_ssm_service_setting` | Default EC2 instance management role for SSM |
 | `aws_iam_role` (ssm) | IAM role used by SSM managed instances |
 | `data.aws_ssm_parameter` (Bottlerocket AMI) | Resolves latest node AMI by EKS version/architecture |
