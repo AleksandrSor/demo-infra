@@ -20,3 +20,9 @@ variable "public_access_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "admin_user_arns" {
+  description = "A list of IAM user or role ARNs to be granted admin access to the EKS cluster"
+  type        = list(string)
+  default     = []
+}

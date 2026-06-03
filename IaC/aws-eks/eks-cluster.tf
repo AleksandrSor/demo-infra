@@ -23,6 +23,10 @@ resource "aws_eks_cluster" "cluster" {
     service_ipv4_cidr = local.config.eks.service_cidr
   }
 
+  upgrade_policy {
+    support_type = "STANDARD"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
   ]
@@ -63,7 +67,8 @@ output "cluster_endpoint" {
 }
 
 output "cluster_ca_cert" {
-  value = aws_eks_cluster.cluster.certificate_authority[0].data
+  value     = aws_eks_cluster.cluster.certificate_authority[0].data
+  sensitive = true #just to reduce output noise, it's not actually a secret
 }
 
 output "cluster_name" {

@@ -45,10 +45,11 @@ network:
 eks:
   version: "1.35"
   nodes:
-    desired_capacity: 1
+    desired_capacity: 0
     max_capacity: 2
-    min_capacity: 1
-    type: t4g.nano
+    min_capacity: 0
+    type: t4g.small
+    max_pods: 16 # memory reservation for 110 pods exceeds the t4g.nano limits, so we set it to 6 for testing purposes
   service_cidr: "10.254.0.0/16"
 common_tags:
   Project: *project_name

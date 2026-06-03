@@ -11,18 +11,20 @@ resource "aws_launch_template" "eks_nodes" {
   image_id      = data.aws_ssm_parameter.eks_nodes_ami_id.value
   instance_type = data.aws_ec2_instance_type.eks_nodes.instance_type
 
+  update_default_version = true
+
   iam_instance_profile {
     arn = aws_iam_instance_profile.eks_nodes.arn
   }
 
+  # Reference: https://bottlerocket.dev/en/os/1.60.x/api/settings/kubernetes/
   user_data = base64encode(<<-EOT
-    [settings.kubernetes]
-    cluster-name = "${aws_eks_cluster.cluster.name}"
-    api-server = "${aws_eks_cluster.cluster.endpoint}"
-    cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
-    max-pods-mode = "default"
-    max-pods = "110"
-  EOT
+[settings.kubernetes]
+cluster-name = "${aws_eks_cluster.cluster.name}"
+api-server = "${aws_eks_cluster.cluster.endpoint}"
+cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
+max-pods = ${local.config.eks.nodes.max_pods}
+EOT
   )
 
   network_interfaces {
