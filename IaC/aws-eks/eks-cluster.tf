@@ -1,3 +1,7 @@
+# TODO https://github.com/AleksandrSor/demo-infra/issues/28
+# implement better control over who can access the cluster endpoint like teleport or similar solution
+# trivy:ignore:AWS-0040
+# trivy:ignore:AWS-0041
 resource "aws_eks_cluster" "cluster" {
   name = local.eks_cluster_name
 
@@ -26,6 +30,8 @@ resource "aws_eks_cluster" "cluster" {
   upgrade_policy {
     support_type = "STANDARD"
   }
+
+  enabled_cluster_log_types = ["api", "audit"]
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
