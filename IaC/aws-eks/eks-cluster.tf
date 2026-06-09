@@ -31,7 +31,7 @@ resource "aws_eks_cluster" "cluster" {
     support_type = "STANDARD"
   }
 
-  enabled_cluster_log_types = ["api", "audit"]
+  enabled_cluster_log_types = ["api", "controllerManager"]
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
