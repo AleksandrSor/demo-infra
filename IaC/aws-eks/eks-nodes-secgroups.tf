@@ -55,3 +55,23 @@ resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_control_plane" {
 
   description = "Allow all outbound traffic to control plane"
 }
+
+# Pods <-> Nodes rules
+
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_allow_pods" {
+  security_group_id            = aws_security_group.eks_nodes.id
+  referenced_security_group_id = aws_security_group.eks_pods.id
+
+  ip_protocol = "-1"
+
+  description = "Allow all inbound traffic from pods"
+}
+
+resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_pods" {
+  security_group_id            = aws_security_group.eks_nodes.id
+  referenced_security_group_id = aws_security_group.eks_pods.id
+
+  ip_protocol = "-1"
+
+  description = "Allow all outbound traffic to pods"
+}

@@ -1,17 +1,17 @@
 locals {
-  vpc_cni_policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  vpc_cni_namespace    = "kube-system"
+  vpc_cni_policy_arn      = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  vpc_cni_namespace       = "kube-system"
   vpc_cni_service_account = "aws-node"
   eniConfig = {
-      create = true
-      region = local.config.env.region
-      subnets = {
-        for subnet_name, subnet in aws_subnet.node_subnet : local.config.network.node_subnets[subnet_name].az => {
-          id             = subnet.id
-          securityGroups = [aws_security_group.eks_nodes.id] #TODO: create POD security group 
-        }
+    create = true
+    region = local.config.env.region
+    subnets = {
+      for subnet_name, subnet in aws_subnet.pod_subnet : local.config.network.pod_subnets[subnet_name].az => {
+        id             = subnet.id
+        securityGroups = [aws_security_group.eks_pods.id]
       }
     }
+  }
 }
 
 data "aws_eks_addon_version" "latest_vpc_cni" {
@@ -26,22 +26,30 @@ resource "aws_eks_addon" "vpc_cni" {
   addon_version = data.aws_eks_addon_version.latest_vpc_cni.version
 
   configuration_values = jsonencode({
-      env = { 
-        AWS_VPC_K8S_CNI_EXTERNALSNAT        = "false"
-        AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG  = "true"
-        ENI_CONFIG_LABEL_DEF                = "topology.kubernetes.io/zone"
-        ENABLE_PREFIX_DELEGATION            = "true"
-        ENABLE_SUBNET_DISCOVERY             = "false"
-      }
-      eniConfig = local.eniConfig
+    env = {
+      AWS_VPC_K8S_CNI_EXTERNALSNAT       = "false"
+      AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG = "true"
+      ENI_CONFIG_LABEL_DEF               = "topology.kubernetes.io/zone"
+      ENABLE_PREFIX_DELEGATION           = "true"
+      ENABLE_SUBNET_DISCOVERY            = "false"
+    }
+    eniConfig = local.eniConfig
   })
 
-  pod_identity_association  {
-    role_arn = aws_iam_role.vpc_cni_role.arn
+  pod_identity_association {
+    role_arn        = aws_iam_role.vpc_cni_role.arn
     service_account = local.vpc_cni_service_account
   }
 
   resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [ 
+    aws_iam_role_policy_attachment.vpc_cni_role_attachment_AmazonEKS_CNI_Policy,
+    aws_vpc_security_group_egress_rule.eks_pods_allow_control_plane,
+    aws_vpc_security_group_ingress_rule.eks_pods_allow_all,
+    aws_vpc_security_group_egress_rule.eks_control_plane_allow_pods,
+    aws_vpc_security_group_ingress_rule.eks_control_plane_allow_pods
+  ]
 }
 
 data "aws_iam_policy_document" "vpc_cni_assume_role" {

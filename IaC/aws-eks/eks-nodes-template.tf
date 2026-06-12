@@ -23,7 +23,7 @@ resource "aws_launch_template" "eks_nodes" {
 cluster-name = "${aws_eks_cluster.cluster.name}"
 api-server = "${aws_eks_cluster.cluster.endpoint}"
 cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
-max-pods = ${local.config.eks.nodes.max_pods}
+${try(local.config.eks.nodes.max_pods != null, false) ? "max-pods = ${local.config.eks.nodes.max_pods}" : ""}
 EOT
   )
 
