@@ -19,7 +19,7 @@ jobs:
       deployment: true
     runs-on: ubuntu-24.04-arm
     env:
-      TF_VAR_PUBLIC_ACCESS_CIDRS: var.EKS_PUBLIC_ACCESS_CIDRS
+      TF_VAR_public_access_cidrs: ${{ vars.EKS_PUBLIC_ACCESS_CIDRS }}
     defaults:
       run:
         working-directory: ${{ env.working_dir }}

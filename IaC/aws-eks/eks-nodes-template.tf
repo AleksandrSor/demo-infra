@@ -36,8 +36,8 @@ EOT
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 2
-    instance_metadata_tags      = "disabled" #there is a bug it cannot provide tags formatted as "kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
-    # and leds to "Failed to launch node with error: 'kubernetes.io/cluster/cluster-name' is not a valid tag key
+    instance_metadata_tags      = "disabled" #there is a bug - it cannot provide tags formatted as "kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+    # and leads to "Failed to launch node with error: 'kubernetes.io/cluster/cluster-name' is not a valid tag key"
   }
 
   lifecycle {
