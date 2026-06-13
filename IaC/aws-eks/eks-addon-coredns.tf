@@ -9,11 +9,13 @@ resource "aws_eks_addon" "coredns" {
   addon_name    = "coredns"
   addon_version = data.aws_eks_addon_version.latest_coredns.version
 
-#   configuration_values = jsonencode({
-#     env = {
-#       COREDNS_LOG_LEVEL = "2"
-#     }
-#   })
+  configuration_values = jsonencode({
+    autoScaling = {
+      enabled     = true
+      minReplicas = max(try(local.config.local.config.eks.nodes.min_capacity, 0), 2)
+      maxReplicas = try(local.config.local.config.eks.nodes.max_capacity, 2)
+    }
+  })
 
   resolve_conflicts_on_update = "OVERWRITE"
 
