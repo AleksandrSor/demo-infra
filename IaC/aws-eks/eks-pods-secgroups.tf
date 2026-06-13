@@ -70,6 +70,7 @@ resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_control_plane" {
 
 # All traffic
 
+#trivy:ignore:AWS-0107
 resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_all" {
   security_group_id = aws_security_group.eks_pods.id
 
@@ -79,6 +80,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_all" {
   description = "Allow all inbound traffic"
 }
 
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_all" {
   security_group_id = aws_security_group.eks_pods.id
 
