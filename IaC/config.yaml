@@ -49,7 +49,7 @@ eks:
     max_capacity: 2
     min_capacity: 0
     type: t4g.small
-    max_pods: 16 # memory reservation for 110 pods exceeds the t4g.nano limits, so we set it to 6 for testing purposes
+#    max_pods: 4 # manually set up max pods per node, beware of memory reservation per pode
   service_cidr: "10.254.0.0/16"
 common_tags:
   Project: *project_name

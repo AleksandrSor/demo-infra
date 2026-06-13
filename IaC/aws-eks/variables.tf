@@ -18,7 +18,7 @@ variable "config_file" {
 variable "public_access_cidrs" {
   description = "A list of CIDR blocks allowed to access the EKS cluster endpoint"
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = ["0.0.0.0/32"] #disable any access, provide your own CIDR through env variable or override in tfvars file
 }
 
 variable "admin_user_arns" {

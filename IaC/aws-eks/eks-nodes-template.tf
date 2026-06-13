@@ -23,7 +23,7 @@ resource "aws_launch_template" "eks_nodes" {
 cluster-name = "${aws_eks_cluster.cluster.name}"
 api-server = "${aws_eks_cluster.cluster.endpoint}"
 cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
-max-pods = ${local.config.eks.nodes.max_pods}
+${try(local.config.eks.nodes.max_pods != null, false) ? "max-pods = ${local.config.eks.nodes.max_pods}" : ""}
 EOT
   )
 
@@ -33,7 +33,11 @@ EOT
   }
 
   metadata_options {
-    http_tokens = "required"
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+    instance_metadata_tags      = "disabled" #there is a bug it cannot provide tags formatted as "kubernetes.io/cluster/${aws_eks_cluster.cluster.name}"
+    # and leds to "Failed to launch node with error: 'kubernetes.io/cluster/cluster-name' is not a valid tag key
   }
 
   lifecycle {

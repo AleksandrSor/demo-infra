@@ -49,6 +49,11 @@ demo-infra/
 │       ├── eks-cluster-secgroup.tf # Control plane <-> nodes SG rules
 │       ├── eks-cluster-access.tf  # EKS access entries and admin policy mapping
 │       ├── eks-cluster-oidc.tf    # EKS OIDC provider discovery and setup
+│       ├── eks-pods-secgroups.tf  # Security group for EKS pods (custom networking)
+│       ├── eks-addon-vpccni.tf    # VPC CNI addon with pod identity and ENI config
+│       ├── eks-addon-coredns.tf   # CoreDNS addon with autoscaling
+│       ├── eks-addon-kube-proxy.tf # kube-proxy addon (nftables mode)
+│       ├── eks-addon-pod-identity-agent.tf # EKS Pod Identity Agent addon
 │       └── ssm.tf              # Default Host Management Configuration
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
@@ -88,16 +93,24 @@ stack for EKS networking and self-managed worker nodes:
 | `aws_autoscaling_group` | Worker node capacity management |
 | `aws_iam_role` + `aws_iam_instance_profile` (nodes) | Node IAM permissions and instance profile |
 | `aws_security_group` (nodes) | Security group for EKS workers |
+| `aws_security_group` (pods) | Security group for EKS pods (custom networking) |
+| `aws_vpc_security_group_ingress_rule`/`egress_rule` (pods) | Pod SG rules: self, nodes, and control plane |
 | `aws_eks_cluster` | EKS control plane with API auth mode and network settings |
 | `aws_iam_role` (cluster) + policy attachments | IAM role used by EKS control plane |
 | `aws_eks_access_entry` + `aws_eks_access_policy_association` | IAM principal access mapping for nodes and admins |
 | `aws_iam_openid_connect_provider` (eks) | OIDC provider for Kubernetes service account federation |
 | `data.tls_certificate` (eks) | Cluster OIDC certificate thumbprint discovery |
 | `aws_vpc_security_group_ingress_rule`/`egress_rule` (control plane) | Enables control plane and node communication |
+| `aws_eks_addon` (vpc-cni) | VPC CNI addon with custom networking and prefix delegation |
+| `aws_iam_role` (vpc-cni) | Pod identity IAM role for VPC CNI service account |
+| `aws_eks_addon` (coredns) | CoreDNS addon with autoscaling |
+| `aws_eks_addon` (kube-proxy) | kube-proxy addon configured in nftables mode |
+| `aws_eks_addon` (pod-identity-agent) | EKS Pod Identity Agent addon |
 | `aws_ssm_service_setting` | Default EC2 instance management role for SSM |
 | `aws_iam_role` (ssm) | IAM role used by SSM managed instances |
 | `data.aws_ssm_parameter` (Bottlerocket AMI) | Resolves latest node AMI by EKS version/architecture |
 | `data.aws_ec2_instance_type` | Validates node instance type details |
+
 
 
 ---
@@ -176,6 +189,7 @@ Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from 
 | `network.vpc_cidr` | `10.10.0.0/16` | Primary VPC CIDR for aws-eks stack |
 | `network.vpc_secondary_cidr` | `100.64.0.0/16` | Secondary CIDR used for pod subnet ranges |
 | `eks.version` | `1.35` | EKS version used for Bottlerocket AMI lookup |
+| `eks.service_cidr` | `10.254.0.0/16` | Kubernetes service CIDR (used in VPC CNI SNAT exclusions) |
 | `eks.nodes.type` | `t4g.nano` | Instance type for self-managed EKS nodes |
 | `eks.nodes.desired_capacity` | `1` | Desired node count |
 | `eks.nodes.min_capacity` | `1` | Minimum node count |
