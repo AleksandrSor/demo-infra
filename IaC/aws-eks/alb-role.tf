@@ -64,3 +64,7 @@ resource "aws_eks_pod_identity_association" "alb_controller" {
   namespace       = local.alb_namespace
   service_account = local.alb_service_account
 }
+
+output "alb_controller_role_arn" {
+  value = aws_iam_role.alb_controller_role.arn
+}
