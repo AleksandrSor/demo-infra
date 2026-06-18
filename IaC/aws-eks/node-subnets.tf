@@ -2,11 +2,15 @@ resource "aws_subnet" "node_subnet" {
 
   vpc_id = aws_vpc.main.id
 
-  for_each                            = local.config.network.node_subnets
-  cidr_block                          = each.value.cidr
-  availability_zone                   = each.value.az
+  for_each          = local.config.network.node_subnets
+  availability_zone = each.value.az
+
+  cidr_block      = each.value.cidr
+  ipv6_cidr_block = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, index(keys(local.config.network.node_subnets), each.key))
+
   private_dns_hostname_type_on_launch = "resource-name"
   map_public_ip_on_launch             = true # TODO: make it configurable to support private subnets
+  assign_ipv6_address_on_creation     = true
 
   tags = {
     Name                                              = "${local.config.project.name}-${each.key}"

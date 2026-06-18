@@ -19,42 +19,43 @@ demo-infra/
 │   ├── config.yaml             # Central environment and tagging config
 │   ├── root.hcl                # Shared Terragrunt root configuration
 │   ├── demo-core/              # Core AWS bootstrap module
-│       ├── terragrunt.hcl      # Stack entrypoint and backend generation
-│       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-│       ├── provider.tf         # AWS provider config + default tags
-│       ├── variables.tf        # YAML config input and derived locals
 │       ├── data.tf             # Data sources (caller identity, region)
-│       ├── user.tf             # IAM automation user + access keys in Secrets Manager
-│       ├── role.tf             # IAM roles (execution + KMS + OIDC trust)
 │       ├── kms.tf              # KMS key for encryption
-│       ├── s3.tf               # S3 bucket + policy for tfstate
 │       ├── oidc.tf             # GitHub Actions OIDC provider
-│       └── output.tf           # Useful bootstrap outputs
-│   └── aws-eks/                # stack for EKS
-│       ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
-│       ├── terraform.tf         # Provider requirements (AWS ~> 6.0)
-│       ├── data.tf              # Data sources (caller identity, region)
+│       ├── output.tf           # Useful bootstrap outputs
 │       ├── provider.tf         # AWS provider config + default tags
-│       ├── variables.tf        # YAML config input and local values
-│       ├── vpc.tf              # VPC, IGW, route tables
-│       ├── node-subnets.tf     # Worker node subnets
-│       ├── pod-subnets.tf      # Pod secondary CIDR subnets
-│       ├── alb-subnets.tf      # ALB subnets and associations
-│       ├── nlb-subnets.tf      # NLB subnets and associations
-│       ├── eks-nodes-iam-roles.tf # IAM role and instance profile for EKS nodes
-│       ├── eks-nodes-secgroups.tf # Security group rules for EKS nodes
-│       ├── eks-nodes-template.tf  # Launch template for self-managed nodes
-│       ├── eks-nodes-group.tf     # Auto Scaling Group for EKS nodes
-│       ├── eks-cluster.tf         # EKS cluster and control plane IAM role
-│       ├── eks-cluster-secgroup.tf # Control plane <-> nodes SG rules
-│       ├── eks-cluster-access.tf  # EKS access entries and admin policy mapping
-│       ├── eks-cluster-oidc.tf    # EKS OIDC provider discovery and setup
-│       ├── eks-pods-secgroups.tf  # Security group for EKS pods (custom networking)
-│       ├── eks-addon-vpccni.tf    # VPC CNI addon with pod identity and ENI config
+│       ├── role.tf             # IAM roles (execution + KMS + OIDC trust)
+│       ├── s3.tf               # S3 bucket + policy for tfstate
+│       ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
+│       ├── terragrunt.hcl      # Stack entrypoint and backend generation
+│       ├── user.tf             # IAM automation user + access keys in Secrets Manager
+│       └── variables.tf        # YAML config input and derived locals
+│   └── aws-eks/                # stack for EKS
+│       ├── alb-role.tf         # IAM policy/role + pod identity for ALB controller
+│       ├── alb-secgroup.tf     # Shared backend security group for ALB controller
+│       ├── alb-subnets.tf      # ALB/NLB subnets, associations, and ALB subnet ACL
+│       ├── data.tf              # Data sources (caller identity, region)
 │       ├── eks-addon-coredns.tf   # CoreDNS addon with autoscaling
 │       ├── eks-addon-kube-proxy.tf # kube-proxy addon (nftables mode)
 │       ├── eks-addon-pod-identity-agent.tf # EKS Pod Identity Agent addon
-│       └── ssm.tf              # Default Host Management Configuration
+│       ├── eks-addon-vpccni.tf    # VPC CNI addon with pod identity and ENI config
+│       ├── eks-cluster-access.tf  # EKS access entries and admin policy mapping
+│       ├── eks-cluster-oidc.tf    # EKS OIDC provider discovery and setup
+│       ├── eks-cluster-secgroup.tf # Control plane <-> nodes SG rules
+│       ├── eks-cluster.tf         # EKS cluster and control plane IAM role
+│       ├── eks-nodes-group.tf     # Auto Scaling Group for EKS nodes
+│       ├── eks-nodes-iam-roles.tf # IAM role and instance profile for EKS nodes
+│       ├── eks-nodes-secgroups.tf # Security group rules for EKS nodes
+│       ├── eks-nodes-template.tf  # Launch template for self-managed nodes
+│       ├── eks-pods-secgroups.tf  # Security group for EKS pods (custom networking)
+│       ├── node-subnets.tf     # Worker node subnets
+│       ├── pod-subnets.tf      # Pod secondary CIDR subnets
+│       ├── provider.tf         # AWS provider config + default tags
+│       ├── ssm.tf              # Default Host Management Configuration
+│       ├── terraform.tf         # Provider requirements (AWS ~> 6.0)
+│       ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
+│       ├── variables.tf        # YAML config input and local values
+│       └── vpc.tf              # VPC, IGW, route tables
 ├── .pre-commit-config.yaml     # Pre-commit hooks (Gitleaks secret scanning)
 └── .gitignore
 ```
@@ -87,6 +88,7 @@ stack for EKS networking and self-managed worker nodes:
 | `aws_default_security_group` | Baseline VPC security group configuration |
 | `aws_default_network_acl` | Baseline VPC network ACL configuration |
 | `aws_subnet` (node/pod/alb/nlb) | Dedicated subnet groups per workload type |
+| `aws_network_acl` (alb subnet) + associations | ALB subnet ACL guardrails and subnet bindings |
 | `aws_route_table` + associations | Public/private route control for subnets |
 | `aws_internet_gateway` | Internet egress for public routing |
 | `aws_launch_template` | Launch template for self-managed EKS worker nodes |
@@ -94,6 +96,7 @@ stack for EKS networking and self-managed worker nodes:
 | `aws_iam_role` + `aws_iam_instance_profile` (nodes) | Node IAM permissions and instance profile |
 | `aws_security_group` (nodes) | Security group for EKS workers |
 | `aws_security_group` (pods) | Security group for EKS pods (custom networking) |
+| `aws_security_group` (alb shared backend) | Shared backend SG used by ALB controller-managed backends |
 | `aws_vpc_security_group_ingress_rule`/`egress_rule` (pods) | Pod SG rules: self, nodes, and control plane |
 | `aws_eks_cluster` | EKS control plane with API auth mode and network settings |
 | `aws_iam_role` (cluster) + policy attachments | IAM role used by EKS control plane |
@@ -103,6 +106,8 @@ stack for EKS networking and self-managed worker nodes:
 | `aws_vpc_security_group_ingress_rule`/`egress_rule` (control plane) | Enables control plane and node communication |
 | `aws_eks_addon` (vpc-cni) | VPC CNI addon with custom networking and prefix delegation |
 | `aws_iam_role` (vpc-cni) | Pod identity IAM role for VPC CNI service account |
+| `aws_iam_policy` + `aws_iam_role` (alb controller) | IAM permissions and role for AWS Load Balancer Controller |
+| `aws_eks_pod_identity_association` (alb controller) | Binds ALB controller service account to IAM role |
 | `aws_eks_addon` (coredns) | CoreDNS addon with autoscaling |
 | `aws_eks_addon` (kube-proxy) | kube-proxy addon configured in nftables mode |
 | `aws_eks_addon` (pod-identity-agent) | EKS Pod Identity Agent addon |
@@ -190,7 +195,7 @@ Terragrunt reads shared settings from `IaC/config.hcl`, which loads values from 
 | `network.vpc_secondary_cidr` | `100.64.0.0/16` | Secondary CIDR used for pod subnet ranges |
 | `eks.version` | `1.35` | EKS version used for Bottlerocket AMI lookup |
 | `eks.service_cidr` | `10.254.0.0/16` | Kubernetes service CIDR (used in VPC CNI SNAT exclusions) |
-| `eks.nodes.type` | `t4g.nano` | Instance type for self-managed EKS nodes |
+| `eks.nodes.type` | `t4g.small` | Instance type for self-managed EKS nodes |
 | `eks.nodes.desired_capacity` | `1` | Desired node count |
 | `eks.nodes.min_capacity` | `1` | Minimum node count |
 | `eks.nodes.max_capacity` | `2` | Maximum node count |

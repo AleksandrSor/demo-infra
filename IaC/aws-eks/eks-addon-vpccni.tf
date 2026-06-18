@@ -33,6 +33,7 @@ resource "aws_eks_addon" "vpc_cni" {
       ENABLE_PREFIX_DELEGATION           = "true"
       ENABLE_SUBNET_DISCOVERY            = "false"
       AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS = "${local.config.eks.service_cidr},${local.config.network.vpc_cidr},${local.config.network.vpc_secondary_cidr}"
+      ENABLE_V6_EGRESS                   = "true"
     }
     eniConfig = local.eniConfig
   })
