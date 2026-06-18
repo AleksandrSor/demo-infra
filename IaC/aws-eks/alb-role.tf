@@ -1,6 +1,6 @@
 locals {
   # Reference: https://github.com/kubernetes-sigs/aws-load-balancer-controller/tree/main/helm/aws-load-balancer-controller#setup-iam-for-serviceaccount
-  alb_policy_url      = "https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/main/docs/install/iam_policy.json"
+  alb_policy_url      = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json"
   alb_namespace       = "kube-system"
   alb_service_account = "aws-load-balancer-controller"
 }
