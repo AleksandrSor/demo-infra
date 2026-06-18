@@ -49,7 +49,6 @@ resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_nodes" {
 }
 
 # Pods <-> Control plane rules
-
 resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_control_plane" {
   security_group_id            = aws_security_group.eks_pods.id
   referenced_security_group_id = aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
@@ -68,17 +67,36 @@ resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_control_plane" {
   description = "Allow all outbound traffic to control plane"
 }
 
+# Pods <-> ALB
+resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_alb" {
+  security_group_id            = aws_security_group.eks_pods.id
+  referenced_security_group_id = aws_security_group.alb_shared_backend.id
+
+  ip_protocol = "-1"
+
+  description = "Allow all inbound traffic from ALB"
+}
+
+resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_alb" {
+  security_group_id            = aws_security_group.eks_pods.id
+  referenced_security_group_id = aws_security_group.alb_shared_backend.id
+
+  ip_protocol = "-1"
+
+  description = "Allow all outbound traffic to ALB"
+}
+
 # All traffic
 
 #trivy:ignore:AWS-0107
-resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_all" {
-  security_group_id = aws_security_group.eks_pods.id
+# resource "aws_vpc_security_group_ingress_rule" "eks_pods_allow_all" {
+#   security_group_id = aws_security_group.eks_pods.id
 
-  ip_protocol = "-1"
-  cidr_ipv4   = "0.0.0.0/0"
+#   ip_protocol = "-1"
+#   cidr_ipv4   = "0.0.0.0/0"
 
-  description = "Allow all inbound traffic"
-}
+#   description = "Allow all inbound traffic"
+# }
 
 #trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_all" {
@@ -86,6 +104,16 @@ resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_all" {
 
   ip_protocol = "-1"
   cidr_ipv4   = "0.0.0.0/0"
+
+  description = "Allow all outbound traffic"
+}
+
+#trivy:ignore:AWS-0104
+resource "aws_vpc_security_group_egress_rule" "eks_pods_allow_all_ipv6" {
+  security_group_id = aws_security_group.eks_pods.id
+
+  ip_protocol = "-1"
+  cidr_ipv6   = "::/0"
 
   description = "Allow all outbound traffic"
 }

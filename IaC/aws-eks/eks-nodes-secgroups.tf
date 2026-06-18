@@ -27,11 +27,22 @@ resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_self" {
   description = "Allow all outbound traffic to self"
 }
 
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all" {
   security_group_id = aws_security_group.eks_nodes.id
 
   ip_protocol = "-1"
   cidr_ipv4   = "0.0.0.0/0"
+
+  description = "Allow all outbound traffic"
+}
+
+#trivy:ignore:AWS-0104
+resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all_ipv6" {
+  security_group_id = aws_security_group.eks_nodes.id
+
+  ip_protocol = "-1"
+  cidr_ipv6   = "::/0"
 
   description = "Allow all outbound traffic"
 }

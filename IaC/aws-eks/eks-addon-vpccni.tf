@@ -33,6 +33,7 @@ resource "aws_eks_addon" "vpc_cni" {
       ENABLE_PREFIX_DELEGATION           = "true"
       ENABLE_SUBNET_DISCOVERY            = "false"
       AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS = "${local.config.eks.service_cidr},${local.config.network.vpc_cidr},${local.config.network.vpc_secondary_cidr}"
+      ENABLE_V6_EGRESS                   = "true"
     }
     eniConfig = local.eniConfig
   })
@@ -47,7 +48,6 @@ resource "aws_eks_addon" "vpc_cni" {
   depends_on = [
     aws_iam_role_policy_attachment.vpc_cni_role_attachment_AmazonEKS_CNI_Policy,
     aws_vpc_security_group_egress_rule.eks_pods_allow_control_plane,
-    aws_vpc_security_group_ingress_rule.eks_pods_allow_all,
     aws_vpc_security_group_egress_rule.eks_control_plane_allow_pods,
     aws_vpc_security_group_ingress_rule.eks_control_plane_allow_pods
   ]
