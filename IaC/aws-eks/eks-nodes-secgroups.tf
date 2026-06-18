@@ -36,6 +36,15 @@ resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all" {
   description = "Allow all outbound traffic"
 }
 
+resource "aws_vpc_security_group_egress_rule" "eks_nodes_allow_all_ipv6" {
+  security_group_id = aws_security_group.eks_nodes.id
+
+  ip_protocol = "-1"
+  cidr_ipv6   = "::/0"
+
+  description = "Allow all outbound traffic"
+}
+
 
 # EKS Control Plane
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_allow_control_plane" {

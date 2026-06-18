@@ -25,6 +25,10 @@ resource "aws_route_table_association" "alb_subnet_association" {
 resource "aws_network_acl" "alb_subnet_acl" {
   vpc_id = aws_vpc.main.id
 
+  tags = {
+    Name = "${local.config.project.name}-alb-subnet-acl"
+  }
+
   ingress {
     protocol   = "tcp"
     rule_no    = 1
