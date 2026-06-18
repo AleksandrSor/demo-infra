@@ -47,7 +47,6 @@ resource "aws_eks_addon" "vpc_cni" {
   depends_on = [
     aws_iam_role_policy_attachment.vpc_cni_role_attachment_AmazonEKS_CNI_Policy,
     aws_vpc_security_group_egress_rule.eks_pods_allow_control_plane,
-    aws_vpc_security_group_ingress_rule.eks_pods_allow_all,
     aws_vpc_security_group_egress_rule.eks_control_plane_allow_pods,
     aws_vpc_security_group_ingress_rule.eks_control_plane_allow_pods
   ]

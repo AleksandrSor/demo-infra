@@ -66,5 +66,6 @@ resource "aws_eks_pod_identity_association" "alb_controller" {
 }
 
 output "alb_controller_role_arn" {
-  value = aws_iam_role.alb_controller_role.arn
+  value       = aws_iam_role.alb_controller_role.arn
+  description = "ARN of the IAM role for AWS ALB Load Balancer Controller"
 }

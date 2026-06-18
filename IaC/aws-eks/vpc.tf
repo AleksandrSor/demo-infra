@@ -3,6 +3,8 @@ resource "aws_vpc" "main" {
   tags                 = { Name = "${local.config.project.name}-vpc" }
   enable_dns_support   = true
   enable_dns_hostnames = true
+
+  assign_generated_ipv6_cidr_block = true
 }
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
@@ -99,6 +101,12 @@ resource "aws_route" "internet_gateway" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.gw.id
+}
+
+resource "aws_route" "internet_gateway_ipv6" {
+  route_table_id              = aws_route_table.public.id
+  destination_ipv6_cidr_block = "::/0"
+  gateway_id                  = aws_internet_gateway.gw.id
 }
 
 resource "aws_route_table" "private" {
