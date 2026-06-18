@@ -2,6 +2,10 @@ resource "aws_security_group" "alb_shared_backend" {
   name        = "${local.config.project.name}-alb-shared-backend"
   description = "ALB Load Balancer Controller Shared Backend"
   vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${local.config.project.name}-alb-shared-backend-sg"
+  }
 }
 
 # ALB Backend <-> Pods rules
