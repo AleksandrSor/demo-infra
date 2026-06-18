@@ -4,8 +4,7 @@ resource "aws_subnet" "alb_subnet" {
 
   for_each        = local.config.network.alb_subnets
   cidr_block      = each.value.cidr
-  ipv6_cidr_block = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, index(keys(local.config.network.alb_subnets), each.key) + 2)
-
+  ipv6_cidr_block = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, index(keys(local.config.network.alb_subnets), each.key) + length(keys(local.config.network.node_subnets)))
   availability_zone                   = each.value.az
   private_dns_hostname_type_on_launch = "resource-name"
 
