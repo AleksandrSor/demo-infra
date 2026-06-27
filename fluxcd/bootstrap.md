@@ -41,37 +41,6 @@ spec:
     ref: "refs/heads/feature/fluxcd"
     path: "fluxcd/clusters/prod"
     pullSecret: "demo-infra"
-EOF
-```
-
-```bash
-kubectl apply -f - <<EOF
-apiVersion: fluxcd.controlplane.io/v1
-kind: FluxInstance
-metadata:
-  name: flux
-  namespace: flux-system
-spec:
-  distribution:
-    version: "2.8.x"
-    registry: "ghcr.io/fluxcd"
-  components:
-    - source-controller
-    - source-watcher
-    - kustomize-controller
-    - helm-controller
-    - notification-controller
-  cluster:
-    type: kubernetes
-    multitenant: false
-    networkPolicy: true
-    domain: "cluster.local"
-  sync:
-    kind: GitRepository
-    url: "https://github.com/AleksandrSor/demo-infra.git"
-    ref: "refs/heads/feature/fluxcd"
-    path: "fluxcd/demo-infra-cluster"
-    pullSecret: "demo-infra"
     provider: github
     interval: 5m
 EOF
