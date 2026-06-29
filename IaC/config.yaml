@@ -49,7 +49,9 @@ eks:
     max_capacity: 2
     min_capacity: 1
     type: t4g.small
-#    max_pods: 4 # manually set up max pods per node, beware of memory reservation per pod
+    labels:
+      role.core: "yes"
+    max_pods: 16 # manually set up max pods per node, beware of memory reservation per pod
   service_cidr: "10.254.0.0/16"
 common_tags:
   Project: *project_name

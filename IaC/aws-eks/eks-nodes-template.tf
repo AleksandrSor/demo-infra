@@ -18,13 +18,13 @@ resource "aws_launch_template" "eks_nodes" {
   }
 
   # Reference: https://bottlerocket.dev/en/os/1.60.x/api/settings/kubernetes/
-  user_data = base64encode(<<-EOT
-[settings.kubernetes]
-cluster-name = "${aws_eks_cluster.cluster.name}"
-api-server = "${aws_eks_cluster.cluster.endpoint}"
-cluster-certificate = "${aws_eks_cluster.cluster.certificate_authority[0].data}"
-${try(local.config.eks.nodes.max_pods != null, false) ? "max-pods = ${local.config.eks.nodes.max_pods}" : ""}
-EOT
+  user_data = base64encode(templatefile("${path.module}/eks-nodes-template-bottlerocket.tftpl", {
+    cluster_name        = aws_eks_cluster.cluster.name
+    cluster_endpoint    = aws_eks_cluster.cluster.endpoint
+    cluster_certificate = aws_eks_cluster.cluster.certificate_authority[0].data
+    max_pods            = try(local.config.eks.nodes.max_pods, null)
+    node_labels         = local.config.eks.nodes.labels
+    })
   )
 
   network_interfaces {

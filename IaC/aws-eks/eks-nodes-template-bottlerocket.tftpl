@@ -1,0 +1,14 @@
+[settings.kubernetes]
+cluster-name = "${cluster_name}"
+api-server = "${cluster_endpoint}"
+cluster-certificate = "${cluster_certificate}"
+%{ if max_pods != null ~}
+max-pods = ${max_pods}
+%{ endif ~}
+%{ if length(node_labels) > 0 ~}
+
+[settings.kubernetes.node-labels]
+%{ for key, value in node_labels ~}
+"${key}" = "${value}"
+%{ endfor ~}
+%{ endif ~}
