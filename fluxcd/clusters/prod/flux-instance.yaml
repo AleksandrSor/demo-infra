@@ -10,6 +10,27 @@ spec:
   path: ./fluxcd/infra/flux-instance/prod
   dependsOn:
     - name: flux-operator
+  # kustomize:  
+  #   patches:
+  #     - target:
+  #         kind: Deployment
+  #       patch: |
+  #         apiVersion: apps/v1
+  #         kind: Deployment
+  #         spec:
+  #           template:
+  #             spec:
+  #               affinity:
+  #                 nodeAffinity:
+  #                   requiredDuringSchedulingIgnoredDuringExecution:
+  #                     nodeSelectorTerms:
+  #                       - matchExpressions:
+  #                           - key: role.core
+  #                             operator: Exists
+  #               tolerations:
+  #                 - key: CriticalAddonsOnly
+  #                   operator: Exists
+  #                   effect: NoSchedule
   prune: true
   interval: 10m
   timeout: 5m
