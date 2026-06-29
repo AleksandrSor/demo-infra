@@ -33,8 +33,13 @@ spec:
         kind: OCIRepository
         name: << inputs.provider.name >>
       values:
+        strategy:
+          type: Recreate
         tolerations:
           - key: "CriticalAddonsOnly"
+            operator: "Exists"
+            effect: "NoSchedule"
+          - key: "role.core"
             operator: "Exists"
             effect: "NoSchedule"
         affinity:

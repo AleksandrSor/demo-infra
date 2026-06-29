@@ -18,3 +18,27 @@ spec:
     multitenant: false
     networkPolicy: true
     domain: "cluster.local"
+    kustomize:  
+      patches:
+        - target:
+            kind: Deployment
+          patch: |
+            apiVersion: apps/v1
+            kind: Deployment
+            spec:
+              template:
+                spec:
+                  affinity:
+                    nodeAffinity:
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        nodeSelectorTerms:
+                          - matchExpressions:
+                              - key: role.core
+                                operator: Exists
+                  tolerations:
+                    - key: CriticalAddonsOnly
+                      operator: Exists
+                      effect: NoSchedule
+                    - key: role.core
+                      operator: Exists
+                      effect: NoSchedule
