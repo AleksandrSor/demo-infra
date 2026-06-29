@@ -25,6 +25,7 @@ spec:
         patch: |
           apiVersion: apps/v1
           kind: Deployment
+            name: all
           spec:
             template:
               spec:
