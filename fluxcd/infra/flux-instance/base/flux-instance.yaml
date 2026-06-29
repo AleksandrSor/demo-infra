@@ -29,13 +29,6 @@ spec:
           spec:
             template:
               spec:
-                affinity:
-                  nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                      nodeSelectorTerms:
-                        - matchExpressions:
-                            - key: "role.core"
-                              operator: Exists
                 tolerations:
                   - key: CriticalAddonsOnly
                     operator: Exists
