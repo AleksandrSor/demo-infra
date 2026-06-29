@@ -23,12 +23,11 @@ spec:
       - target:
           kind: Deployment
         patch: |
-          apiVersion: apps/v1
           kind: Deployment
           spec:
             template:
               spec:
                 tolerations:
-                  - key: "CriticalAddonsOnly"
-                    operator: "Exists"
-                    effect: "NoSchedule"
+                  - key: CriticalAddonsOnly
+                    operator: Exists
+                    effect: NoSchedule
