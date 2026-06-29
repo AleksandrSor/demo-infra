@@ -41,4 +41,7 @@ spec:
                   - key: CriticalAddonsOnly
                     operator: Exists
                     effect: NoSchedule
+                  - key: role.core
+                    operator: Exists
+                    effect: NoSchedule
                 
