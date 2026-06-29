@@ -30,6 +30,6 @@ spec:
             template:
               spec:
                 tolerations:
-                  - key: CriticalAddonsOnly
-                    operator: Exists
-                    effect: NoSchedule
+                  - key: "CriticalAddonsOnly"
+                    operator: "Exists"
+                    effect: "NoSchedule"
