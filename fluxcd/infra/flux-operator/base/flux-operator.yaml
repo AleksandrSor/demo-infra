@@ -35,6 +35,7 @@ spec:
       values:
         strategy:
           type: Recreate
+          RollingUpdate: null
         tolerations:
           - key: "CriticalAddonsOnly"
             operator: "Exists"

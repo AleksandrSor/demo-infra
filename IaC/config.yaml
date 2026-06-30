@@ -51,6 +51,9 @@ eks:
     type: t4g.small
     labels:
       role.core: "yes"
+    taints:
+      "role.core": ["true:NoSchedule"]
+      "CriticalAddonsOnly": ["true:NoSchedule"]
     max_pods: 16 # manually set up max pods per node, beware of memory reservation per pod
   service_cidr: "10.254.0.0/16"
 common_tags:

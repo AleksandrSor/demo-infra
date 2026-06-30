@@ -12,3 +12,11 @@ max-pods = ${max_pods}
 "${key}" = "${value}"
 %{ endfor ~}
 %{ endif ~}
+
+%{ if length(node_taints) > 0 ~}
+
+[settings.kubernetes.node-taints]
+%{ for key, values in node_taints ~}
+"${key}" = ${jsonencode(values)}
+%{ endfor ~}
+%{ endif ~}

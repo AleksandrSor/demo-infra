@@ -23,7 +23,8 @@ resource "aws_launch_template" "eks_nodes" {
     cluster_endpoint    = aws_eks_cluster.cluster.endpoint
     cluster_certificate = aws_eks_cluster.cluster.certificate_authority[0].data
     max_pods            = try(local.config.eks.nodes.max_pods, null)
-    node_labels         = local.config.eks.nodes.labels
+    node_labels         = try(local.config.eks.nodes.labels, {})
+    node_taints         = try(local.config.eks.nodes.taints, {})
     })
   )
 
