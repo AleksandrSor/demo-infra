@@ -33,9 +33,9 @@ spec:
         kind: OCIRepository
         name: << inputs.provider.name >>
       values:
-        strategy:
-          type: Recreate
-          RollingUpdate: null
+        # strategy:
+        #   type: Recreate
+        #   RollingUpdate: null
         tolerations:
           - key: "CriticalAddonsOnly"
             operator: "Exists"
