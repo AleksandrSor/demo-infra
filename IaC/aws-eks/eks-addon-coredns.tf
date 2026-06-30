@@ -12,8 +12,10 @@ resource "aws_eks_addon" "coredns" {
   configuration_values = jsonencode({
     autoScaling = {
       enabled     = true
-      minReplicas = max(try(local.config.eks.nodes.min_capacity, 0), 2)
-      maxReplicas = try(local.config.eks.nodes.max_capacity, 2)
+      minReplicas = max(try(local.config.eks.nodes["core"].min_capacity, 0), 2)
+      maxReplicas = try(local.config.eks.nodes["core"].max_capacity, 2)
+      minReplicas = 2
+      maxReplicas = 5
     }
     affinity = {
       nodeAffinity = {

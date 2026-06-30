@@ -1,22 +1,24 @@
 resource "aws_placement_group" "eks_nodes" {
-  name     = "${local.config.project.name}-eks-nodes-pg"
+  for_each = local.config.eks.nodes
+  name     = "${local.config.project.name}-${each.key}-eks-nodes"
   strategy = "spread"
 }
 
 resource "aws_autoscaling_group" "eks_nodes" {
-  desired_capacity    = local.config.eks.nodes.desired_capacity
-  max_size            = local.config.eks.nodes.max_capacity
-  min_size            = local.config.eks.nodes.min_capacity
-  name                = "${local.config.project.name}-eks-nodes-asg"
+  for_each = local.config.eks.nodes
+  desired_capacity    = each.value.desired_capacity
+  max_size            = each.value.max_capacity
+  min_size            = each.value.min_capacity
+  name                = "${local.config.project.name}-${each.key}-eks-nodes"
   vpc_zone_identifier = [for s in aws_subnet.node_subnet : s.id]
 
   wait_for_capacity_timeout = "0"
 
-  placement_group = aws_placement_group.eks_nodes.id
+  placement_group = aws_placement_group.eks_nodes[each.key].id
 
   launch_template {
-    id      = aws_launch_template.eks_nodes.id
-    version = aws_launch_template.eks_nodes.latest_version
+    id      = aws_launch_template.eks_nodes[each.key].id
+    version = aws_launch_template.eks_nodes[each.key].latest_version
   }
 
   tag {

@@ -1,15 +1,20 @@
 data "aws_ec2_instance_type" "eks_nodes" {
-  instance_type = local.config.eks.nodes.type
+  for_each = local.config.eks.nodes
+  instance_type = each.value.type
 }
 
 data "aws_ssm_parameter" "eks_nodes_ami_id" {
-  name = "/aws/service/bottlerocket/aws-k8s-${local.config.eks.version}/${one(data.aws_ec2_instance_type.eks_nodes.supported_architectures)}/latest/image_id"
+  for_each = local.config.eks.nodes
+  name = "/aws/service/bottlerocket/aws-k8s-${local.config.eks.version}/${one(data.aws_ec2_instance_type.eks_nodes[each.key].supported_architectures)}/latest/image_id"
 }
 
 resource "aws_launch_template" "eks_nodes" {
-  name_prefix   = "${local.config.project.name}-nodes-"
-  image_id      = data.aws_ssm_parameter.eks_nodes_ami_id.value
-  instance_type = data.aws_ec2_instance_type.eks_nodes.instance_type
+
+  for_each = local.config.eks.nodes
+
+  name_prefix   = "${local.config.project.name}-${each.key}-nodes-"
+  image_id      = data.aws_ssm_parameter.eks_nodes_ami_id[each.key].value
+  instance_type = data.aws_ec2_instance_type.eks_nodes[each.key].instance_type
 
   update_default_version = true
 
@@ -22,9 +27,9 @@ resource "aws_launch_template" "eks_nodes" {
     cluster_name        = aws_eks_cluster.cluster.name
     cluster_endpoint    = aws_eks_cluster.cluster.endpoint
     cluster_certificate = aws_eks_cluster.cluster.certificate_authority[0].data
-    max_pods            = try(local.config.eks.nodes.max_pods, null)
-    node_labels         = try(local.config.eks.nodes.labels, {})
-    node_taints         = try(local.config.eks.nodes.taints, {})
+    max_pods            = try(each.value.max_pods, null)
+    node_labels         = try(each.value.labels, {})
+    node_taints         = try(each.value.taints, {})
     })
   )
 
