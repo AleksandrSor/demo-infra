@@ -15,6 +15,30 @@ resource "aws_eks_addon" "coredns" {
       minReplicas = max(try(local.config.eks.nodes.min_capacity, 0), 2)
       maxReplicas = try(local.config.eks.nodes.max_capacity, 2)
     }
+    affinity = {
+      nodeAffinity = {
+        requiredDuringSchedulingIgnoredDuringExecution = {
+          nodeSelectorTerms = [{
+            matchExpressions = [{
+              key      = "role.core"
+              operator = "Exists"
+            }]
+          }]
+        }
+      }
+    }
+    tolerations = [
+      {
+        key      = "CriticalAddonsOnly"
+        operator = "Exists"
+        effect   = "NoSchedule"
+      },
+      {
+        key      = "role.core"
+        operator = "Exists"
+        effect   = "NoSchedule"
+      }
+    ]
   })
 
   resolve_conflicts_on_update = "OVERWRITE"
