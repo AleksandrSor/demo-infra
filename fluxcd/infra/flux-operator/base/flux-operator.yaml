@@ -33,8 +33,6 @@ spec:
         kind: OCIRepository
         name: << inputs.provider.name >>
       values:
-        strategy:
-          type: Recreate
         tolerations:
           - key: "CriticalAddonsOnly"
             operator: "Exists"
