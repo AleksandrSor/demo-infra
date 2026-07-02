@@ -9,6 +9,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: aws-load-balancer-controller
+  namespace: kube-system
 spec:
   chart:
     spec:
