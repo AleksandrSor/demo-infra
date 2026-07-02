@@ -19,6 +19,8 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: eks
+  interval: 30m
+  releaseName: aws-load-balancer-controller
   values:
     replicaCount: 1
     serviceAccount:
