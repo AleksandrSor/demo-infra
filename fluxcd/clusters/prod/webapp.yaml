@@ -14,4 +14,4 @@ spec:
   timeout: 5m
   images:
     - name: ghcr.io/stefanprodan/podinfo
-      newDigest: sha256:0a8aa037137c010a75aed8d3fe56931d0edd3bcd0e55acfb96db11e1e96397b1 # {"$imagepolicy": "prod-webapp:webapp:digest"}
+      digest: sha256:0a8aa037137c010a75aed8d3fe56931d0edd3bcd0e55acfb96db11e1e96397b1 # {"$imagepolicy": "prod-webapp:webapp:digest"}
