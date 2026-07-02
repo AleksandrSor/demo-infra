@@ -1,0 +1,17 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: webapp
+  namespace: prod-webapp
+spec:
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./fluxcd/app/front/webapp/prod
+  prune: true
+  targetNamespace: prod-webapp
+  interval: 10m
+  timeout: 5m
+  images:
+    - name: ghcr.io/stefanprodan/podinfo
+      newDigest: sha256:0a8aa037137c010a75aed8d3fe56931d0edd3bcd0e55acfb96db11e1e96397b1 # {"$imagepolicy": "prod-webapp:webapp:digest"}
