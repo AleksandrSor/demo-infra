@@ -1,7 +1,0 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
-  name: aws-load-balancer-controller
-spec:
-  values:    
-    backendSecurityGroup: sg-0d695b59e522cbe9d
