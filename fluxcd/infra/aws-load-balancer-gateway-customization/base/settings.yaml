@@ -1,3 +1,4 @@
+# Reference: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/targetgroupconfig/#example-gatewayclass-level-defaults
 # Admin's default TGC
 apiVersion: gateway.k8s.aws/v1beta1
 kind: TargetGroupConfiguration
