@@ -60,7 +60,7 @@ eks:
       desired_capacity: 1
       max_capacity: 2
       min_capacity: 1
-      type: t4g.nano
+      type: t4g.small
       labels:
         role.app: "yes"
       taints:
