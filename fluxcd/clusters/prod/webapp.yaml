@@ -12,6 +12,8 @@ spec:
   targetNamespace: prod-webapp
   interval: 10m
   timeout: 5m
+  dependsOn:
+    - name: aws-load-balancer-gateway-customization
   images:
     - name: ghcr.io/stefanprodan/podinfo
       #digest: sha256:0a8aa037137c010a75aed8d3fe56931d0edd3bcd0e55acfb96db11e1e96397b1 # {"$imagepolicy": "prod-webapp:webapp:digest"}
