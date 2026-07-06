@@ -11,4 +11,4 @@ spec:
   rules:
     - backendRefs:
         - name: webapp
-          port: 9898
+          port: 80

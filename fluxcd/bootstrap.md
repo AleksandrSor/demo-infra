@@ -43,5 +43,31 @@ spec:
     pullSecret: "demo-infra"
     provider: github
     interval: 5m
+  kustomize:  
+    patches:
+      - target:
+          kind: Deployment
+        patch: |-
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: all
+          spec:
+            template:
+              spec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                        - matchExpressions:
+                            - key: role.core
+                              operator: Exists
+                tolerations:
+                  - key: CriticalAddonsOnly
+                    operator: Exists
+                    effect: NoSchedule
+                  - key: role.core
+                    operator: Exists
+                    effect: NoSchedule
 EOF
 ```
