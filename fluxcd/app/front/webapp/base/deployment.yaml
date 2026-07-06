@@ -83,3 +83,12 @@ spec:
               - matchExpressions:
                   - key: role.app
                     operator: "Exists"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: webapp
+          matchLabelKeys:
+            - pod-template-hash
