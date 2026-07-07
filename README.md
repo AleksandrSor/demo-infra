@@ -9,7 +9,7 @@ Built with [OpenTofu](https://opentofu.org/) and [Flux v2](https://fluxcd.io/) f
 ## Quick Links
 
 - **[Infrastructure as Code (IaC)](IaC/README.md)** — OpenTofu/Terragrunt configuration for AWS resources
-- **[CI/CD Pipelines](.github/README.md)** — GitHub Actions workflows for security, validation, and deployment
+- **[CI/CD Pipelines](.github/workflows/README.md)** — GitHub Actions workflows for security, validation, and deployment
 - **[Flux CD (GitOps)](fluxcd/README.md)** — Continuous deployment configuration
 - **[AWS EKS Stack](IaC/aws-eks/README.md)** — Self-managed Kubernetes cluster details
 
@@ -98,7 +98,7 @@ Automated workflows handle:
 - Validation (HCL formatting, syntax checks)
 - Deployment (Terragrunt apply with OIDC AWS auth)
 
-See [.github/README.md](.github/README.md) for workflow details.
+See [.github/workflows/README.md](.github/workflows/README.md) for workflow details.
 
 ---
 
@@ -126,7 +126,7 @@ tofu fmt --recursive
 
 - [IaC/README.md](IaC/README.md) — Infrastructure resources and modules
 - [IaC/aws-eks/README.md](IaC/aws-eks/README.md) — EKS-specific configuration
-- [.github/README.md](.github/README.md) — CI/CD workflows
+- [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps
 
