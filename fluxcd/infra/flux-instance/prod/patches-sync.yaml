@@ -7,7 +7,7 @@ spec:
   sync:
     kind: GitRepository
     url: "https://github.com/AleksandrSor/demo-infra.git"
-    ref: "refs/heads/feature/fluxcd"
+    ref: "refs/heads/main"
     path: "fluxcd/clusters/prod"
     pullSecret: "demo-infra"
     provider: github

@@ -172,7 +172,6 @@ eks:
       max_pods: 16
 ```
 
-Supports both map-based format (above) and legacy single-group format for backward compatibility.
 
 ### Module Variables
 

@@ -8,9 +8,9 @@ helm install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-opera
 ```bash
 kubectl create secret generic demo-infra \
   --namespace=flux-system \
-  --from-literal=githubAppID=4159512 \
-  --from-literal=githubAppInstallationID=142927928 \
-  --from-file=githubAppPrivateKey=./tmp/flux/flux-cd-source-controller.2026-06-27.private-key.pem
+  --from-literal=githubAppID=<GITHUB_APP_ID> \
+  --from-literal=githubAppInstallationID=<GITHUB_APP_INSTALLATION_ID> \
+  --from-file=githubAppPrivateKey=/path/to/github-app.private-key.pem
 ```
 
 ```bash
@@ -38,7 +38,7 @@ spec:
   sync:
     kind: GitRepository
     url: "https://github.com/AleksandrSor/demo-infra.git"
-    ref: "refs/heads/feature/fluxcd"
+    ref: "refs/heads/main"
     path: "fluxcd/clusters/prod"
     pullSecret: "demo-infra"
     provider: github
