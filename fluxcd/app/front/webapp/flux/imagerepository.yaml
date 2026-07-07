@@ -1,0 +1,7 @@
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: webapp
+spec:
+  image: ghcr.io/stefanprodan/podinfo
+  interval: 10m

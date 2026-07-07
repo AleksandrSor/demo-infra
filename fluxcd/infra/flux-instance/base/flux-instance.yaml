@@ -1,0 +1,49 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.8.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - source-watcher
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+    # - image-reflector-controller
+    # - image-automation-controller
+  cluster:
+    type: kubernetes
+    multitenant: false
+    networkPolicy: true
+    domain: "cluster.local"
+  kustomize:  
+    patches:
+      - target:
+          kind: Deployment
+        patch: |-
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: all
+          spec:
+            template:
+              spec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                        - matchExpressions:
+                            - key: role.core
+                              operator: Exists
+                tolerations:
+                  - key: CriticalAddonsOnly
+                    operator: Exists
+                    effect: NoSchedule
+                  - key: role.core
+                    operator: Exists
+                    effect: NoSchedule
+                

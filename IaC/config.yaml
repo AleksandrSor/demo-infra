@@ -45,11 +45,26 @@ network:
 eks:
   version: "1.35"
   nodes:
-    desired_capacity: 1
-    max_capacity: 2
-    min_capacity: 1
-    type: t4g.small
-#    max_pods: 4 # manually set up max pods per node, beware of memory reservation per pod
+    core:
+      desired_capacity: 1
+      max_capacity: 2
+      min_capacity: 1
+      type: t4g.small
+      labels:
+        role.core: "yes"
+      taints:
+        "role.core": ["true:NoSchedule"]
+        "CriticalAddonsOnly": ["true:NoSchedule"]
+      max_pods: 16 # manually set up max pods per node, beware of memory reservation per pod
+    app:
+      desired_capacity: 0
+      max_capacity: 2
+      min_capacity: 0
+      type: t4g.small
+      labels:
+        role.app: "yes"
+      taints:
+        "role.app": ["true:NoSchedule"]
   service_cidr: "10.254.0.0/16"
 common_tags:
   Project: *project_name

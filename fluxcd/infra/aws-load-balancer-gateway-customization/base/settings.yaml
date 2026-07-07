@@ -1,0 +1,36 @@
+# Reference: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/targetgroupconfig/#example-gatewayclass-level-defaults
+# Admin's default TGC
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: tg-config-default
+  namespace: kube-system
+spec:
+  defaultConfiguration:
+    targetType: ip
+---
+# GatewayClass LBC references it
+apiVersion: gateway.k8s.aws/v1beta1
+kind: LoadBalancerConfiguration
+metadata:
+  name: lb-internet-default
+  namespace: kube-system
+spec:
+  mergingMode: prefer-gateway  # let teams override
+  scheme: internet-facing
+  ipAddressType: dualstack
+  defaultTargetGroupConfiguration:
+    name: tg-config-default
+---
+# GatewayClass points to the LBC
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: default
+spec:
+  controllerName: gateway.k8s.aws/alb
+  parametersRef:
+    group: gateway.k8s.aws
+    kind: LoadBalancerConfiguration
+    name: lb-internet-default
+    namespace: kube-system
