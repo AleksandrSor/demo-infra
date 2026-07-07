@@ -57,9 +57,9 @@ eks:
         "CriticalAddonsOnly": ["true:NoSchedule"]
       max_pods: 16 # manually set up max pods per node, beware of memory reservation per pod
     app:
-      desired_capacity: 1
+      desired_capacity: 0
       max_capacity: 2
-      min_capacity: 1
+      min_capacity: 0
       type: t4g.small
       labels:
         role.app: "yes"
