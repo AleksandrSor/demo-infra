@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: webapp
+  namespace: webapp
 spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
@@ -72,6 +73,22 @@ spec:
           requests:
             cpu: 100m
             memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - NET_BIND_SERVICE
+        volumeMounts:
+          - name: data
+            mountPath: /data
+      securityContext:
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+      volumes:
+        - name: data
+          emptyDir: {}
       tolerations:
         - key: "role.app"
           operator: "Exists"
