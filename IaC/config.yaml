@@ -70,3 +70,11 @@ common_tags:
   Project: *project_name
   Environment: Development
   Owner: DevOps Team
+zone:
+  "aws-alek-sor-website":
+    domain: "aws.alek-sor.website"
+certificates:
+  "wildcard-aws-alek-sor-website":
+    domain: "*.aws.alek-sor.website"
+    subject_alternative_names:
+      - "aws.alek-sor.website"
