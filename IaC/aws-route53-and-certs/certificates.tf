@@ -36,3 +36,8 @@ resource "aws_route53_record" "dvo" {
   zone_id         = each.value.zone_id
 
 }
+
+output "certificates_arn" {
+  description = "The ARN of the ACM certificates."
+  value       = { for k, v in aws_acm_certificate.certificates : v.domain_name => v.arn }
+}
