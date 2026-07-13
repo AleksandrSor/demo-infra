@@ -12,6 +12,7 @@ Built with [OpenTofu](https://opentofu.org/) and [Flux v2](https://fluxcd.io/) f
 - **[CI/CD Pipelines](.github/workflows/README.md)** — GitHub Actions workflows for security, validation, and deployment
 - **[Flux CD (GitOps)](fluxcd/README.md)** — Continuous deployment configuration
 - **[AWS EKS Stack](IaC/aws-eks/README.md)** — Self-managed Kubernetes cluster details
+- **[Route53 and Certificates Stack](IaC/aws-route53-and-certs/)** — Public DNS hosted zones and ACM certificates
 
 ---
 
@@ -24,7 +25,8 @@ demo-infra/
 │   └── workflows/              # CI/CD pipelines (see .github/README.md)
 ├── IaC/                        # Infrastructure as Code (see IaC/README.md)
 │   ├── demo-core/              # AWS bootstrap and foundational resources
-│   └── aws-eks/                # EKS cluster, networking, and node groups
+│   ├── aws-eks/                # EKS cluster, networking, and node groups
+│   └── aws-route53-and-certs/  # Route53 hosted zones, ACM certificates, and ExternalDNS IAM
 ├── fluxcd/                     # Flux v2 configuration (see fluxcd/README.md)
 │   ├── clusters/               # Cluster-specific configurations
 │   ├── infra/                  # Infrastructure components
@@ -84,6 +86,7 @@ All configuration is centralized in `IaC/config.yaml`:
 
 - **Networking**: VPC CIDR, subnets, routing
 - **EKS**: Cluster version, node groups, add-ons
+- **DNS/TLS**: Route53 hosted zones and ACM certificates
 - **IAM**: OIDC provider, automation users, roles
 - **Tagging**: Default tags for all resources
 
@@ -126,6 +129,7 @@ tofu fmt --recursive
 
 - [IaC/README.md](IaC/README.md) — Infrastructure resources and modules
 - [IaC/aws-eks/README.md](IaC/aws-eks/README.md) — EKS-specific configuration
+- [IaC/aws-route53-and-certs/](IaC/aws-route53-and-certs/) — Route53 and ACM stack
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps

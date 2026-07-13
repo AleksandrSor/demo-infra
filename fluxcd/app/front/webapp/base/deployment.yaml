@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: webapp
-  namespace: webapp
 spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
@@ -75,6 +74,7 @@ spec:
             memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: true
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
               - ALL
@@ -84,8 +84,7 @@ spec:
           - name: data
             mountPath: /data
       securityContext:
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
+        #runAsNonRoot: true 
         seccompProfile:
           type: RuntimeDefault
       volumes:

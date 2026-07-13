@@ -22,23 +22,32 @@ IaC/
 │   ├── terragrunt.hcl      # Stack entrypoint and backend generation
 │   ├── user.tf             # IAM automation user + access keys in Secrets Manager
 │   └── variables.tf        # YAML config input and derived locals
-└── aws-eks/                # EKS cluster and networking
-    ├── alb-role.tf         # IAM policy/role + pod identity for ALB controller
-    ├── alb-secgroup.tf     # Shared backend security group for ALB controller
-    ├── alb-subnets.tf      # ALB/NLB subnets, associations, and ALB subnet ACL
+├── aws-eks/                # EKS cluster and networking
+│   ├── alb-role.tf         # IAM policy/role + pod identity for ALB controller
+│   ├── alb-secgroup.tf     # Shared backend security group for ALB controller
+│   ├── alb-subnets.tf      # ALB/NLB subnets, associations, and ALB subnet ACL
+│   ├── data.tf             # Data sources (caller identity, region)
+│   ├── eks-addon-*.tf      # EKS add-ons (CoreDNS, kube-proxy, VPC CNI, pod-identity-agent)
+│   ├── eks-cluster-*.tf    # EKS cluster, IAM, OIDC, and access control
+│   ├── eks-nodes-*.tf      # Node groups, IAM, security groups, and launch templates
+│   ├── eks-pods-secgroups.tf # Pod security group configuration
+│   ├── node-subnets.tf     # Worker node subnets
+│   ├── pod-subnets.tf      # Pod secondary CIDR subnets
+│   ├── provider.tf         # AWS provider config + default tags
+│   ├── ssm.tf              # EC2 Instance Management Configuration
+│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
+│   ├── variables.tf        # YAML config input and local values
+│   └── vpc.tf              # VPC, IGW, route tables
+└── aws-route53-and-certs/  # Public DNS and TLS certificate stack
+    ├── certificates.tf     # ACM certificates and validation outputs
     ├── data.tf             # Data sources (caller identity, region)
-    ├── eks-addon-*.tf      # EKS add-ons (CoreDNS, kube-proxy, VPC CNI, pod-identity-agent)
-    ├── eks-cluster-*.tf    # EKS cluster, IAM, OIDC, and access control
-    ├── eks-nodes-*.tf      # Node groups, IAM, security groups, and launch templates
-    ├── eks-pods-secgroups.tf # Pod security group configuration
-    ├── node-subnets.tf     # Worker node subnets
-    ├── pod-subnets.tf      # Pod secondary CIDR subnets
+    ├── externaldns-iam-role-and-identity.tf # ExternalDNS IAM role and pod identity
     ├── provider.tf         # AWS provider config + default tags
-    ├── ssm.tf              # EC2 Instance Management Configuration
     ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
     ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
     ├── variables.tf        # YAML config input and local values
-    └── vpc.tf              # VPC, IGW, route tables
+    └── zone.tf             # Route53 hosted zones and nameserver outputs
 ```
 
 Note: `IaC/test` is intentionally excluded.
@@ -99,6 +108,20 @@ EKS cluster with networking, node groups, and add-ons:
 | `data.aws_ssm_parameter` (Bottlerocket AMI) | Resolves latest node AMI by EKS version/architecture |
 | `data.aws_ec2_instance_type` | Validates node instance type details |
 
+### aws-route53-and-certs
+
+DNS and certificate stack for public domain management:
+
+| Resource | Purpose |
+|---|---|
+| `aws_route53_zone` | Creates and manages public hosted zones |
+| `aws_acm_certificate` | Requests ACM certificates with DNS validation |
+| `aws_iam_role` (externaldns) | IAM role assumed by ExternalDNS |
+| `aws_iam_policy` (externaldns) | Route53 permissions for ExternalDNS record management |
+| `aws_eks_pod_identity_association` (externaldns) | Binds ExternalDNS service account to IAM role |
+
+Outputs include hosted zone nameservers and ACM domain validation options enriched with matched zone IDs.
+
 ## Usage
 
 ### Normal workflow
@@ -148,6 +171,8 @@ Terragrunt reads shared settings from `config.hcl`, which loads values from `con
 | `project.name` | `demo-infra` | Project name prefix |
 | `network.vpc_cidr` | `10.10.0.0/16` | Primary VPC CIDR for aws-eks stack |
 | `network.vpc_secondary_cidr` | `100.64.0.0/16` | Secondary CIDR used for pod subnet ranges |
+| `zone` | map of zones | Route53 hosted zones keyed by logical name |
+| `certificates` | map of certificates | ACM certificates keyed by logical name |
 | `eks.version` | `1.35` | EKS version used for Bottlerocket AMI lookup |
 | `eks.service_cidr` | `10.254.0.0/16` | Kubernetes service CIDR (used in VPC CNI SNAT exclusions) |
 | `eks.nodes` | map of groups | Node groups (e.g., core, app) with capacity and settings |
