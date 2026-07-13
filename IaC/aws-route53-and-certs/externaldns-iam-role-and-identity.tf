@@ -73,7 +73,7 @@ resource "aws_iam_role_policy_attachment" "externaldns_policy_attachment" {
   policy_arn = aws_iam_policy.externaldns_policy.arn
 }
 
-resource "aws_eks_pod_identity_association" "example" {
+resource "aws_eks_pod_identity_association" "externaldns" {
   cluster_name    = var.eks_cluster_name
   namespace       = local.externaldns_namespace
   service_account = local.externaldns_service_account
