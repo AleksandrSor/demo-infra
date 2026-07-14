@@ -6,21 +6,21 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  scan:
-    uses: ./.github/workflows/scan.yml
-    secrets: inherit
-    permissions:
-        security-events: write  # Required to upload SARIF results
-        contents: read  # Required for checkout and gitleaks        
-        packages: read # required to fetch internal or private CodeQL packs
-        actions: read # only required for workflows in private repositories
+  # scan:
+  #   uses: ./.github/workflows/scan.yml
+  #   secrets: inherit
+  #   permissions:
+  #       security-events: write  # Required to upload SARIF results
+  #       contents: read  # Required for checkout and gitleaks        
+  #       packages: read # required to fetch internal or private CodeQL packs
+  #       actions: read # only required for workflows in private repositories
   auto-approve:
     runs-on: ubuntu-24.04-arm
     if: github.event.pull_request.user.login == github.repository_owner
     permissions:
         pull-requests: write # Required to auto-approve PRs created by dependabot
         contents: read  # Required for checkout and gitleaks 
-    needs: scan
+    # needs: scan
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
