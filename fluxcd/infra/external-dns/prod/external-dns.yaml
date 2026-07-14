@@ -10,3 +10,6 @@ spec:
     env:
       - name: AWS_DEFAULT_REGION
         value: us-east-1
+    txtOwnerId: demo-infra-prod
+    txtPrefix: demo-infra-prod
+    policy: sync
