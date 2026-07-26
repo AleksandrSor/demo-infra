@@ -1,0 +1,61 @@
+# Envoy configuration for proxying at L7 level
+# need to be hardened by tls termination
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+  allow_paths:
+    - exact: /ready
+    - exact: /healthcheck
+    - prefix: /stats
+static_resources:
+  listeners:
+  - name: k8s_proxy_listener
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 8080
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+          stat_prefix: k8s_api_proxy
+          route_config:
+            name: k8s_api_route
+            virtual_hosts:
+            - name: k8s_api_vhost
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: kubernetes_api_cluster
+                  timeout: 0s
+                  idle_timeout: 0s
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+  clusters:
+  - name: kubernetes_api_cluster
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext"
+        common_tls_context:
+          validation_context:
+            trusted_ca:
+              filename: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    load_assignment:
+      cluster_name: kubernetes_api_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: kubernetes.default.svc.cluster.local
+                port_value: 443
