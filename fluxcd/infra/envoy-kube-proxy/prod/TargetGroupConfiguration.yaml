@@ -1,0 +1,13 @@
+apiVersion: gateway.k8s.aws/v1
+kind: TargetGroupConfiguration
+metadata:
+  name: envoy-kube-proxy-tgc
+spec:
+  targetReference:
+    name: envoy-kube-proxy
+  defaultConfiguration:
+    protocol: HTTPS
+    healthCheckConfig:
+      healthCheckPath: /ready
+      healthCheckPort: '9901'
+      healthCheckProtocol: HTTP

@@ -7,7 +7,6 @@ admin:
       port_value: 9901
   allow_paths:
     - exact: /ready
-    - exact: /healthcheck
     - prefix: /stats
 static_resources:
   listeners:
