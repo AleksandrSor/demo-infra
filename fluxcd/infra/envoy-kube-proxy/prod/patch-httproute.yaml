@@ -11,3 +11,9 @@ spec:
     - backendRefs:
         - name: envoy-kube-proxy
           port: 8443
+      filters:
+        - extensionRef:
+            group: gateway.k8s.aws
+            kind: ListenerRuleConfiguration
+            name: envoy-kube-proxy-jwt-validation
+          type: ExtensionRef
