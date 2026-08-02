@@ -19,7 +19,7 @@ metadata:
   namespace: flux-system
 type: Opaque
 stringData:
-  backendSecurityGroup: "your_sg_group_id_here_for_shared_backend>"
+  backendSecurityGroup: "<your_sg_group_id_here_for_shared_backend>"
 ---
 apiVersion: v1
 kind: Secret
@@ -28,7 +28,7 @@ metadata:
   namespace: flux-system
 type: Opaque
 stringData:
-  jwksEndpoint: "https://<keycloack_url>/auth/realms/<keycloack_realm>//protocol/openid-connect/certs"
-  issuer: "https://<keycloack_url>/auth/realms/<keycloack_realm>"
+  jwksEndpoint: "https://<keycloak_url>/auth/realms/<keycloak_realm>//protocol/openid-connect/certs"
+  issuer: "https://<keycloak_url>/auth/realms/<keycloak_realm>"
   aud: "<token_audience>"
 ```
