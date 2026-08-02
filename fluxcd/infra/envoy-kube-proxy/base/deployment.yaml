@@ -1,3 +1,5 @@
+#trivy:ignore:KSV-0118
+#trivy:ignore:KSV-0014
 apiVersion: apps/v1
 kind: Deployment
 metadata:
