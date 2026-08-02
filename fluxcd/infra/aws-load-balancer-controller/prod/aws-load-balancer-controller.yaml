@@ -5,4 +5,18 @@ metadata:
   namespace: kube-system
 spec:
   values:    
-    backendSecurityGroup: sg-0d695b59e522cbe9d
+    backendSecurityGroup: "${backendSecurityGroup}"
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "role.core"
+        operator: "Exists"
+        effect: "NoSchedule"
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: role.core
+                  operator: Exists

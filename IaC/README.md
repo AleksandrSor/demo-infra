@@ -39,6 +39,13 @@ IaC/
 │   ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
 │   ├── variables.tf        # YAML config input and local values
 │   └── vpc.tf              # VPC, IGW, route tables
+├── aws-eks-oidc/           # EKS external OIDC identity provider stack
+│   ├── data.tf             # Data sources (caller identity, region)
+│   ├── eks-identity-provider.tf # EKS OIDC identity provider configuration
+│   ├── provider.tf         # AWS provider config + default tags
+│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl      # Stack entrypoint (depends on aws-eks outputs)
+│   └── variables.tf        # Stack inputs (cluster name + OIDC provider config)
 └── aws-route53-and-certs/  # Public DNS and TLS certificate stack
     ├── certificates.tf     # ACM certificates and validation outputs
     ├── data.tf             # Data sources (caller identity, region)
@@ -122,6 +129,16 @@ DNS and certificate stack for public domain management:
 
 Outputs include hosted zone nameservers and ACM domain validation options enriched with matched zone IDs.
 
+### aws-eks-oidc
+
+EKS identity provider stack for external OIDC authentication to the Kubernetes API:
+
+| Resource | Purpose |
+|---|---|
+| `aws_eks_identity_provider_config` | Configures an external OIDC IdP on the EKS cluster |
+
+This stack depends on `aws-eks` and consumes the cluster name from that stack via Terragrunt dependency outputs.
+
 ## Usage
 
 ### Normal workflow
@@ -156,6 +173,8 @@ terragrunt run --all -- apply
 ## Configuration
 
 Terragrunt reads shared settings from `config.hcl`, which loads values from `config.yaml` and renders the backend configuration for each stack.
+
+For `aws-eks-oidc`, the stack also requires explicit `eks_oidc_provider_config` input values (provider name, issuer URL, client ID, and optional claims mapping).
 
 ### Config Keys
 
@@ -205,3 +224,5 @@ eks:
 | `config_file` | `../config.yaml` | Path to the YAML config consumed by the module |
 | `public_access_cidrs` | `["0.0.0.0/32"]` | CIDR blocks allowed to access the EKS cluster endpoint |
 | `admin_user_arns` | `[]` | IAM user or role ARNs granted admin access to the EKS cluster |
+| `eks_cluster_name` | n/a | EKS cluster name for identity provider attachment (provided via Terragrunt dependency) |
+| `eks_oidc_provider_config` | n/a | Object describing external OIDC provider config (`name`, `client_id`, `issuer_url`, optional claim mappings) |

@@ -13,3 +13,24 @@ spec:
     txtOwnerId: demo-infra-prod
     txtPrefix: demo-infra-prod
     policy: sync
+    enableGatewayListenerSets: true
+    sources:
+      - service
+      - ingress
+      - gateway-httproute
+      - gateway-grpcroute
+    labelFilter: "external-dns=yes"
+    tolerations:
+      - key: "CriticalAddonsOnly"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "role.core"
+        operator: "Exists"
+        effect: "NoSchedule"
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: role.core
+                  operator: Exists

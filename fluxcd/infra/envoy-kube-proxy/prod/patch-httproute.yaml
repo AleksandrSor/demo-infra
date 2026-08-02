@@ -6,7 +6,7 @@ metadata:
     external-dns: "yes"
 spec:
   hostnames:
-    - "envoy-kube-proxy.aws.alek-sor.website"
+    - "envoy-kube-proxy.${commonDomain}"
   rules:
     - backendRefs:
         - name: envoy-kube-proxy
