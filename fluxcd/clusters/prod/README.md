@@ -28,7 +28,7 @@ metadata:
   namespace: flux-system
 type: Opaque
 stringData:
-  jwksEndpoint: "https://<keycloak_url>/auth/realms/<keycloak_realm>//protocol/openid-connect/certs"
+  jwksEndpoint: "https://<keycloak_url>/auth/realms/<keycloak_realm>/protocol/openid-connect/certs"
   issuer: "https://<keycloak_url>/auth/realms/<keycloak_realm>"
   aud: "<token_audience>"
 ```
