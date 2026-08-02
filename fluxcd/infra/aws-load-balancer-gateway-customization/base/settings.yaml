@@ -1,6 +1,6 @@
 # Reference: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/targetgroupconfig/#example-gatewayclass-level-defaults
 # Admin's default TGC
-apiVersion: gateway.k8s.aws/v1beta1
+apiVersion: gateway.k8s.aws/v1
 kind: TargetGroupConfiguration
 metadata:
   name: tg-config-default
@@ -10,7 +10,7 @@ spec:
     targetType: ip
 ---
 # GatewayClass LBC references it
-apiVersion: gateway.k8s.aws/v1beta1
+apiVersion: gateway.k8s.aws/v1
 kind: LoadBalancerConfiguration
 metadata:
   name: lb-internet-default

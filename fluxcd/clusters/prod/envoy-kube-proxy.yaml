@@ -1,17 +1,21 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: aws-load-balancer-controller
+  name: envoy-kube-proxy
   namespace: flux-system
 spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./fluxcd/infra/aws-load-balancer-controller/prod
+  path: ./fluxcd/infra/envoy-kube-proxy/prod
+  dependsOn:
+    - name: aws-load-balancer-controller
   prune: true
-  interval: 1h
+  interval: 30m
   timeout: 5m
   postBuild:
     substituteFrom:
       - kind: Secret
-        name: alb-params
+        name: env-params
+      - kind: Secret
+        name: oidc-params

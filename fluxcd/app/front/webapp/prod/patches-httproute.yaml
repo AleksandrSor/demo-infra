@@ -6,4 +6,4 @@ metadata:
     external-dns: "yes"
 spec:
   hostnames:
-    - "webapp.aws.alek-sor.website"
+    - "webapp.${commonDomain}"

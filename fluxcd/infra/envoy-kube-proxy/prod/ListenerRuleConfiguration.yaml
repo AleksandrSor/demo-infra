@@ -1,0 +1,14 @@
+apiVersion: gateway.k8s.aws/v1
+kind: ListenerRuleConfiguration
+metadata:
+  name: envoy-kube-proxy-jwt-validation
+spec:
+  actions:
+    - type: "jwt-validation"
+      jwtValidationConfig:
+        jwksEndpoint: "${jwksEndpoint}"
+        issuer: "${issuer}"
+        additionalClaims:
+          - name: "aud"
+            format: "single-string"
+            values: ["${aud}"]

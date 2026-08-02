@@ -31,17 +31,3 @@ spec:
     defaultLoadBalancerScheme: internal
     ingressClassConfig:
       default: true
-    tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Exists"
-        effect: "NoSchedule"
-      - key: "role.core"
-        operator: "Exists"
-        effect: "NoSchedule"
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: role.core
-                  operator: Exists

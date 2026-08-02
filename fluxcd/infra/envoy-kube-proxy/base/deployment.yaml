@@ -1,0 +1,33 @@
+#trivy:ignore:KSV-0118
+#trivy:ignore:KSV-0014
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-kube-proxy
+  labels:
+    app: envoy-kube-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: envoy-kube-proxy
+  template:
+    metadata:
+      labels:
+        app: envoy-kube-proxy
+    spec:
+      containers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.37-latest
+        ports:
+        - containerPort: 8443
+          name: proxy
+        - containerPort: 9901
+          name: admin
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/envoy
+      volumes:
+      - name: config-volume
+        configMap:
+          name: envoy-kube-proxy-config

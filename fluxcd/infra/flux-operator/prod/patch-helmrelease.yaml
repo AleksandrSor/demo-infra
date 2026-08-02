@@ -1,0 +1,26 @@
+- op: add
+  path: /spec/resources/1/spec/values/tolerations
+  value:
+    - key: CriticalAddonsOnly
+      operator: Exists
+      effect: NoSchedule
+    - key: role.core
+      operator: Exists
+      effect: NoSchedule
+- op: add
+  path: /spec/resources/1/spec/values/affinity
+  value:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: role.core
+                operator: Exists
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                  - linux
+- op: add
+  path: /spec/resources/1/spec/values/strategy
+  value:
+    type: Recreate

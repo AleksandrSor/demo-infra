@@ -32,24 +32,4 @@ spec:
       chartRef:
         kind: OCIRepository
         name: << inputs.provider.name >>
-      values:
-        strategy:
-          type: Recreate
-        tolerations:
-          - key: "CriticalAddonsOnly"
-            operator: "Exists"
-            effect: "NoSchedule"
-          - key: "role.core"
-            operator: "Exists"
-            effect: "NoSchedule"
-        affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: role.core
-                      operator: Exists
-                    - key: kubernetes.io/os
-                      operator: In
-                      values:
-                        - linux
+      values: {}
