@@ -10,7 +10,7 @@ Furthermore, AWS added custom resource definitions (CRDs) to implement [ELB list
 
 Let's put these new possibilities into practice.
 
-Since a public endpoint to access EKS cluster is considered unsafe. I am going to add [OIDC](https://openid.net/developers/how-connect-works/) authorization to my [EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html) and add [JWT token validation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html) with ALB controller. So I will put all security responsibilities (validation and authentication) on the AWS side (at no extra cost) and only run [Envoy](https://www.envoyproxy.io/) to proxy kube api at L4.
+Since exposing a public endpoint to an EKS cluster is considered unsafe, I am going to add [OIDC](https://openid.net/developers/how-connect-works/) authorization to my [EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html) and add [JWT token validation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html) with the ALB controller. In this setup, I will place all security responsibilities for validation and authentication on the AWS side (at no extra cost) and only run [Envoy](https://www.envoyproxy.io/) to proxy the Kubernetes API at Layer 4.
 
 ## ALB installation
 
@@ -97,9 +97,9 @@ spec:
 
 ## Keycloak
 
-I am going to use [Keycloak](https://www.keycloak.org/) as an OIDC identity provider. [Cloid-IAM](https://www.cloud-iam.com/) lets you have a managed Keycloak instance for 1 realm and 100 users for free. It is ideal for testing playground.
+I am going to use [Keycloak](https://www.keycloak.org/) as an OIDC identity provider. [Cloid-IAM](https://www.cloud-iam.com/) lets you have a managed Keycloak instance for 1 realm and 100 users for free. It is ideal for a testing playground.
 
-Keycloak configuration is beyond the scope of this article for simplicity reasons. I promise to publish how to do it next!
+Keycloak configuration is beyond the scope of this article for the sake of simplicity. I promise to publish how to do it next!
 
 ## EKS OIDC provider
 Instructions from AWS can be found [here](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html).
@@ -110,16 +110,16 @@ Terraform/tofu example [here](https://github.com/AleksandrSor/demo-infra/blob/ma
 resource "aws_eks_identity_provider_config" "eks_oidc_provider" {
   cluster_name = var.eks_cluster_name
   oidc {
-    identity_provider_config_name  = "demo-infra-keycloak"
-    client_id                      = "demo-infra-kube-api"
-    issuer_url                     = https://<keycloak_url>/auth/realms/<keycloak_realm>"
+    identity_provider_config_name = "demo-infra-keycloak"
+    client_id                     = "demo-infra-kube-api"
+    issuer_url                    = "https://<keycloak_url>/auth/realms/<keycloak_realm>"
 
     groups_claim  = "roles"
     groups_prefix = "oidc:"
 
     username_claim  = "username"
     username_prefix = "oidc-"
-  }  
+  }
 }
 ```
 
@@ -217,7 +217,7 @@ static_resources:
 ```
 
 ## Gateway
-A full working example can be found [here](https://github.com/AleksandrSor/demo-infra/tree/main/fluxcd/infra/envoy-kube-proxy/prod).
+A fully working example can be found [here](https://github.com/AleksandrSor/demo-infra/tree/main/fluxcd/infra/envoy-kube-proxy/prod).
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
@@ -260,7 +260,7 @@ spec:
 ```
 [TargetGroupConfiguration](https://github.com/AleksandrSor/demo-infra/blob/main/fluxcd/infra/envoy-kube-proxy/prod/TargetGroupConfiguration.yaml).
 
-TargetGroupConfiguration is needed to set up the backend as an HTTPS target, not as an HTTP target.
+TargetGroupConfiguration is needed to set up the backend as an HTTPS target rather than an HTTP target.
 ```yaml
 apiVersion: gateway.k8s.aws/v1
 kind: TargetGroupConfiguration
@@ -298,9 +298,10 @@ spec:
 
 ## Validation
 
-OIDC token can be accessed with [Postman](https://learning.postman.com/docs/use/send-requests/authorization/oauth-20).
+An OIDC token can be obtained with [Postman](https://learning.postman.com/docs/use/send-requests/authorization/oauth-20).
 
-```Set up request in Postman.
+```text
+Set up the request in Postman.
 Auth Type --> OAuth2
 Auth URL --> from the Keycloak .well-known/openid-configuration
 Access Token URL --> from the Keycloak .well-known/openid-configuration
@@ -309,7 +310,7 @@ Client Secret --> from the client configuration
 
 and click on "Get new access token"
 
-Adding Postman's call back URL to the client "Valid redirect URIs" should not be forgotten.
+Adding Postman's callback URL to the client "Valid redirect URIs" should not be forgotten.
 ```
 
 This token can be used with kubectl like this.
@@ -322,7 +323,7 @@ If everything were set correctly, kubectl returns the username and group with OI
 Username                                            oidc-keyuser1
 Groups                                              [oidc:kube-admin system:authenticated]
 ```
-and the ALB endpoint would not return a 401 response code.
+and the ALB endpoint should not return a 401 response code.
 
 ## Conclusion
 
@@ -330,4 +331,4 @@ and the ALB endpoint would not return a 401 response code.
 
 Moreover, it is now possible to authenticate a GitHub Actions token using Keycloak as an identity broker middleware with no static credentials.
 
-And I have an interesting idea to implement SSO and JWT authentication on ALB for the next time. Follow me!
+And I have an interesting idea to implement SSO and JWT authentication on the ALB next time. Follow me!
