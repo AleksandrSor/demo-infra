@@ -95,9 +95,9 @@ spec:
     namespace: kube-system
 ```
 
-## Keycloack
+## Keycloak
 
-I am going to use [Keycloack](https://www.keycloak.org/) as an OIDC identity provider. [Cloid-IAM](https://www.cloud-iam.com/) lets you have a managed Keycloack instance for 1 realm and 100 users for free. It is ideal for testing playground.
+I am going to use [Keycloak](https://www.keycloak.org/) as an OIDC identity provider. [Cloid-IAM](https://www.cloud-iam.com/) lets you have a managed Keycloak instance for 1 realm and 100 users for free. It is ideal for testing playground.
 
 Keycloak configuration is beyond the scope of this article for simplicity reasons. I promise to publish how to do it next!
 
@@ -302,8 +302,8 @@ OIDC token can be accessed with [Postman](https://learning.postman.com/docs/use/
 
 ```Set up request in Postman.
 Auth Type --> OAuth2
-Auth URL --> from the Keycloack .well-known/openid-configuration
-Access Token URL --> from the Keycloack .well-known/openid-configuration
+Auth URL --> from the Keycloak .well-known/openid-configuration
+Access Token URL --> from the Keycloak .well-known/openid-configuration
 Client ID --> from the client configuration
 Client Secret --> from the client configuration
 
