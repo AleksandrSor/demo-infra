@@ -33,100 +33,11 @@ demo-infra/
 │   ├── clusters/               # Cluster-specific configurations
 │   ├── infra/                  # Infrastructure components
 │   └── app/                    # Application deployments
+├── docs/                       # Articles and technical write-ups (see docs/README.md)
+│   └── articles/               # In-depth guides (e.g. OIDC JWT validation)
 ├── .pre-commit-config.yaml     # Pre-commit hooks
 └── README.md                   # This file
 ```
-
----
-
-## Prerequisites
-
-- [Dev Containers](https://containers.dev/) — all tooling is pre-installed
-- AWS credentials configured under `.aws/` at workspace root
-- Git repository set up for GitOps (GitHub or similar)
-
----
-
-## Getting Started
-
-### 1. Initialize Infrastructure (First-time only)
-
-```bash
-cd IaC/demo-core
-tofu init
-tofu plan
-tofu apply
-
-# Follow state migration steps if needed
-cd ..
-terragrunt run --all -- plan
-terragrunt run --all -- apply
-```
-
-See [IaC/README.md](IaC/README.md#first-time-initialization) for detailed steps.
-
-### 2. Deploy Flux CD
-
-```bash
-cd fluxcd
-# Follow bootstrap.md instructions
-```
-
-### 3. Manage Infrastructure
-
-```bash
-cd IaC
-terragrunt run --all -- plan
-terragrunt run --all -- apply
-```
-
----
-
-## Configuration
-
-All configuration is centralized in `IaC/config.yaml`:
-
-- **Networking**: VPC CIDR, subnets, routing
-- **EKS**: Cluster version, node groups, add-ons
-- **EKS OIDC**: External OIDC identity provider config for Kubernetes API authentication
-- **DNS/TLS**: Route53 hosted zones and ACM certificates
-- **IAM**: OIDC provider, automation users, roles
-- **Tagging**: Default tags for all resources
-
-For detailed configuration options, see [IaC/README.md#configuration](IaC/README.md#configuration).
-
----
-
-## CI/CD
-
-Automated workflows handle:
-- Security scanning (CodeQL, Gitleaks, Trivy)
-- Validation (HCL formatting, syntax checks)
-- Deployment (Terragrunt apply with OIDC AWS auth)
-
-See [.github/workflows/README.md](.github/workflows/README.md) for workflow details.
-
----
-
-## Development
-
-### Code Quality
-
-Pre-commit hooks ensure HCL and YAML formatting:
-
-```bash
-pre-commit run --all-files
-```
-
-### Local Validation
-
-```bash
-cd IaC/aws-eks
-tofu validate
-tofu fmt --recursive
-```
-
----
 
 ## Support & Documentation
 
@@ -134,6 +45,7 @@ tofu fmt --recursive
 - [IaC/aws-eks/README.md](IaC/aws-eks/README.md) — EKS-specific configuration
 - [IaC/aws-eks-oidc/](IaC/aws-eks-oidc/) — EKS identity provider configuration stack
 - [IaC/aws-route53-and-certs/](IaC/aws-route53-and-certs/) — Route53 and ACM stack
+- [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps
