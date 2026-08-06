@@ -10,7 +10,9 @@ Furthermore, AWS added custom resource definitions (CRDs) to implement [ELB list
 
 Let's put these new possibilities into practice.
 
-Since exposing a public endpoint to an EKS cluster is considered unsafe, I am going to add [OIDC](https://openid.net/developers/how-connect-works/) authorization to my [EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html) and add [JWT token validation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html) with the ALB controller. In this setup, I will place all security responsibilities for validation and authentication on the AWS side (at no extra cost) and only run [Envoy](https://www.envoyproxy.io/) to proxy the Kubernetes API at Layer 4.
+Since exposing a public endpoint to an EKS cluster is considered unsafe, I am going to add [OIDC](https://openid.net/developers/how-connect-works/) authorization to my [EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html) and add [JWT token validation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html) with the ALB controller.
+
+In this setup, I will place all security responsibilities for validation and authentication on the AWS side (at no extra cost) and only run [Envoy](https://www.envoyproxy.io/) to proxy the Kubernetes API at Layer 4.
 
 ## ALB installation
 
@@ -332,3 +334,5 @@ and the ALB endpoint should not return a 401 response code.
 Moreover, it is now possible to authenticate a GitHub Actions token using Keycloak as an identity broker middleware with no static credentials.
 
 And I have an interesting idea to implement SSO and JWT authentication on the ALB next time. Follow me!
+
+Feel free to leave a comment with your feedback.
