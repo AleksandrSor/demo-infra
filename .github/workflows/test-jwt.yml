@@ -27,7 +27,7 @@ jobs:
         with:
           script: |
             const audience = process.env['KEYCLOAK_AUDIENCE'];
-            let ghToken = await core.getIDToken(audience);
+            let ghToken = await core.getIDToken('repo:AleksandrSor/demo-infra:environment:test-keycloak');
             core.setOutput('ghToken', ghToken);
 
             function decodeJWT(jwtToken) {
