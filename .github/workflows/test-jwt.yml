@@ -54,8 +54,9 @@ jobs:
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \
-            -d "assertion=${{ steps.get-gh-token.outputs.ghToken }}" | jq -r '.')
+            -d "grant_type=client_credentials" \
+            -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
+            -d "client_assertion=${{ steps.get-gh-token.outputs.ghToken }}" | jq -r '.')
           echo ${KEYCLOAK_RESPONSE}
   test-keycloak:
     runs-on: ubuntu-24.04-arm
