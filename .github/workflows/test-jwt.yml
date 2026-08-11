@@ -35,4 +35,25 @@ jobs:
           }
           jwtd $IDTOKEN
           echo "idToken=${IDTOKEN}" >> $GITHUB_OUTPUT
+  test-keycloak:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Test Keycloak
+        run: |
+          GH_TOKEN=$(curl -s "$ACTIONS_ID_TOKEN_REQUEST_URL" \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" | jq -r '.value')
+          echo "ghToken=${GH_TOKEN}" >> $GITHUB_OUTPUT
+          echo "----"
+          echo "${GH_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+          echo "----"
+
+          jwtd() {
+              if [[ -x $(command -v jq) ]]; then
+                  jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${1}"
+                  echo "Signature: $(echo "${1}" | awk -F'.' '{print $3}')"
+              fi
+          }
+          jwtd $GH_TOKEN
+
+        id: get-token
               
