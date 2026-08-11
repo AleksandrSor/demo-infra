@@ -24,8 +24,8 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            const runtimeUrl = process.env['KEYCLOAK_URL']
-            let ghToken = await core.getIDToken(runtimeUrl);
+            const audience = process.env['GITHUB_REPOSITORY']
+            let ghToken = await core.getIDToken(audience);
             core.setOutput('ghToken', ghToken);
 
             function decodeJWT(jwtToken) {
