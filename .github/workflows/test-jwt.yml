@@ -56,7 +56,6 @@ jobs:
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \
             -d "scope=openid" \ 
-            -d "client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak" \
             -d "assertion=${{ steps.get-gh-token.outputs.ghToken }}" \
             -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
             -d "client_assertion=${{ steps.get-gh-token.outputs.ghToken }}" | jq -r '.')
