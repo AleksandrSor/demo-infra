@@ -54,7 +54,9 @@ jobs:
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials" \
+            -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \
+            -d "assertion=${{ steps.get-gh-token.outputs.ghToken }}" \
+            -d "scope=openid" \
             -d "client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak" \
             -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
             -d "client_assertion=${{ steps.get-gh-token.outputs.ghToken }}" | jq -r '.')
