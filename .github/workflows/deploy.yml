@@ -2,7 +2,7 @@ name: main
 on:
   push:
     branches:
-      - main
+      - prod
       - dev
 
 concurrency: production

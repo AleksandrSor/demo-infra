@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - dev
+      - prod
     types: [opened, synchronize, reopened]
 
 jobs:
