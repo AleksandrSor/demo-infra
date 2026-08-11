@@ -57,7 +57,7 @@ jobs:
             -d "grant_type=client_credentials" \
             -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
             -d "client_assertion=${{ steps.get-gh-token.outputs.ghToken }}" \
-            -d "client_id=github-action-demo-infra-project" \
+            -d "client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak" \
             -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" | jq -r '.')
           echo ${KEYCLOAK_RESPONSE}
   test-keycloak:
