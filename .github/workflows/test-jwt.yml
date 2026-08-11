@@ -8,37 +8,50 @@ permissions:
   id-token: write
   contents: read
 
+
+
 jobs:
   test-jwt:
     runs-on: ubuntu-24.04-arm
+    environment: 
+      name: test-keycloak
+      deployment: false
+    env:
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
     steps:
-      - uses: actions/github-script@v9
-        id: script
-        timeout-minutes: 10
+      - name: Get JWT token
+        id: get-token
+        uses: actions/github-script@v9
         with:
-          debug: true
           script: |
-            const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN']
-            const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
-            core.setOutput('TOKEN', token.trim())
-            core.setOutput('IDTOKENURL', runtimeUrl.trim())
-      - name: Test JWT
-        id: tokenid
-        run: |
-          IDTOKEN=$(curl -H "Authorization: Bearer ${{steps.script.outputs.TOKEN}}" ${{steps.script.outputs.IDTOKENURL}}  -H "Accept: application/json; api-version=2.0" -H "Content-Type: application/json" -d "{}" | jq -r '.value')
-          echo $IDTOKEN
-          jwtd() {
-              if [[ -x $(command -v jq) ]]; then
-                  jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${1}"
-                  echo "Signature: $(echo "${1}" | awk -F'.' '{print $3}')"
-              fi
-          }
-          jwtd $IDTOKEN
-          echo "idToken=${IDTOKEN}" >> $GITHUB_OUTPUT
+            const core = require('@actions/core');
+            const runtimeUrl = process.env['KEYCLOAK_URL']
+            let ghToken = await core.getIDToken(runtimeUrl);
+            core.setOutput('ghToken', ghToken);
+
+            function decodeJWT(jwtToken) {
+              try {
+                // A JWT has 3 parts: Header, Payload, Signature
+                const [header, payload, signature] = jwtToken.split('.');
+                
+                // Decode base64url string to standard UTF-8 text
+                const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
+                
+                // Parse the string into a readable JavaScript object
+                return JSON.parse(decodedPayload);
+              } catch (error) {
+                console.error("Invalid JWT format", error);
+                return null;
+              }
+            }
+
+            console.log('----');
+            console.log(decodeJWT(ghToken));
+            console.log('----');
   test-keycloak:
     runs-on: ubuntu-24.04-arm
     steps:
-      - name: Test Keycloak
+      - name: Get JWT token
         run: |
           GH_TOKEN=$(curl -s "$ACTIONS_ID_TOKEN_REQUEST_URL" \
             -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" | jq -r '.value')
@@ -46,14 +59,6 @@ jobs:
           echo "----"
           echo "${GH_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
           echo "----"
-
-          jwtd() {
-              if [[ -x $(command -v jq) ]]; then
-                  jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${1}"
-                  echo "Signature: $(echo "${1}" | awk -F'.' '{print $3}')"
-              fi
-          }
-          jwtd $GH_TOKEN
 
         id: get-token
               
