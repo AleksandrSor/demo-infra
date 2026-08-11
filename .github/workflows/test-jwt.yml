@@ -24,7 +24,6 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            const core = require('@actions/core');
             const runtimeUrl = process.env['KEYCLOAK_URL']
             let ghToken = await core.getIDToken(runtimeUrl);
             core.setOutput('ghToken', ghToken);
