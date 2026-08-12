@@ -77,7 +77,6 @@ jobs:
             -d 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer' \
             -d 'scope=openid' \
             -d 'client_id=https://token.actions.githubusercontent.com' \
-            -d 'client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}' \
             -d 'assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
           KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
           echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
