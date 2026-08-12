@@ -49,35 +49,16 @@ jobs:
             console.log('----');
             console.log(decodeJWT(ghToken));
             console.log('----');
-      # - name: Get KC token
-      #   id: get-kc-token
-      #   run: |
-      #     KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
-      #       -H 'Content-Type: application/x-www-form-urlencoded' \
-      #       -d 'grant_type=client_credentials' \
-      #       -d 'scope=openid' \
-      #       -d 'client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak' \
-      #       -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
-      #       -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
-      #     KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
-      #     echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
-      #     echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
-      #     echo "----"
-      #     echo "KC Response:"
-      #     echo "${KEYCLOAK_RESPONSE}"
-      #     echo "----"
-      #     echo "Decoded KC Token:"
-      #     echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
-      #     echo "----"
       - name: Get KC token
         id: get-kc-token
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
             -H 'Content-Type: application/x-www-form-urlencoded' \
-            -d 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer' \
+            -d 'grant_type=client_credentials' \
             -d 'scope=openid' \
-            -d 'client_id=https://token.actions.githubusercontent.com' \
-            -d 'assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+            -d 'client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak' \
+            -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
+            -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
           KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
           echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
           echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
