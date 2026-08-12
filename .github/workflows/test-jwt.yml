@@ -49,15 +49,33 @@ jobs:
             console.log('----');
             console.log(decodeJWT(ghToken));
             console.log('----');
+      # - name: Get KC token
+      #   id: get-kc-token
+      #   run: |
+      #     KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+      #       -H 'Content-Type: application/x-www-form-urlencoded' \
+      #       -d 'grant_type=client_credentials' \
+      #       -d 'scope=openid' \
+      #       -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
+      #       -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+      #     KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
+      #     echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+      #     echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+      #     echo "----"
+      #     echo "KC Response:"
+      #     echo "${KEYCLOAK_RESPONSE}"
+      #     echo "----"
+      #     echo "Decoded KC Token:"
+      #     echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+      #     echo "----"
       - name: Get KC token
         id: get-kc-token
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
             -H 'Content-Type: application/x-www-form-urlencoded' \
-            -d 'grant_type=client_credentials' \
+            -d 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer' \
             -d 'scope=openid' \
-            -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
-            -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+            -d 'assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
           KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
           echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
           echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
