@@ -79,7 +79,7 @@ jobs:
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM" \
             -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakToken }}" \
-            -H "Accept: application/json" | jq -r '.')
+            -H "Accept: application/json")
           echo "----"
           echo "${KEYCLOAK_RESPONSE}"
           echo "----"
