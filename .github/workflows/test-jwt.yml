@@ -78,7 +78,7 @@ jobs:
       - name: Admin Test KC token
         run: |
           KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM" \
-            -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakToken }}" | jq -r '.')
+            -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakToken }}")
           echo "----"
           echo "${KEYCLOAK_RESPONSE}"
           echo "----"
