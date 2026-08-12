@@ -59,14 +59,15 @@ jobs:
             -d 'client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak' \
             -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
             -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
-          echo "keycloakToken=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')" >> $GITHUB_OUTPUT
+          KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
+          echo "keycloakToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
           echo "----"
           echo "KC Response:"
           echo "${KEYCLOAK_RESPONSE}"
           echo "----"
           echo "Decoded KC Token:"
-          echo "${KEYCLOAK_RESPONSE}" | jq -r '.access_token' | awk -F '.' '{print $2}' | base64 --decode | jq
-          echo "----
+          echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+          echo "----"
   test-keycloak:
     runs-on: ubuntu-24.04-arm
     steps:
