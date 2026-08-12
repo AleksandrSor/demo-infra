@@ -75,6 +75,13 @@ jobs:
           echo "----"
           echo "${KEYCLOAK_RESPONSE}"
           echo "----"
+      - name: Admin Test KC token
+        run: |
+          KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/admin/realms/$KEYCLOAK_REALM/" \
+            -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakToken }}" | jq -r '.')
+          echo "----"
+          echo "${KEYCLOAK_RESPONSE}"
+          echo "----"
   test-keycloak:
     runs-on: ubuntu-24.04-arm
     steps:
