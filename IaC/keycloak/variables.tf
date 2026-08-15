@@ -2,7 +2,7 @@ locals {
 
   config = yamldecode(file(var.config_file))
 
-  realm_name = "${local.config.project.name}-project"
+  realm_name = "${local.config.keycloak.realm}"
 }
 
 variable "config_file" {
