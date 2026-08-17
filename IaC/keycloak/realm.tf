@@ -8,7 +8,7 @@ resource "keycloak_realm" "realm" {
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes = [ login_theme ]
+    ignore_changes  = [login_theme]
   }
 }
 

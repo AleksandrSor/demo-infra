@@ -3,8 +3,8 @@ locals {
 }
 
 resource "keycloak_kubernetes_identity_provider" "github_actions" {
-  alias = "github-actions"
-  realm = keycloak_realm.realm.id
+  alias  = "github-actions"
+  realm  = keycloak_realm.realm.id
   issuer = local.github_actions_issuer
 
   lifecycle {
@@ -13,19 +13,19 @@ resource "keycloak_kubernetes_identity_provider" "github_actions" {
 }
 
 resource "keycloak_openid_client" "github_actions" {
-  realm_id = keycloak_realm.realm.id
-  client_id = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
-  name = "github-actions-${replace(local.config.env.repository.name, "/[^a-zA-Z0-9]/", "-")}-env-${local.config.env.repository.protected_environment}"
-  enabled = true
-  access_type = "CONFIDENTIAL"
-  standard_flow_enabled = false
+  realm_id                     = keycloak_realm.realm.id
+  client_id                    = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
+  name                         = "github-actions-${replace(local.config.env.repository.name, "/[^a-zA-Z0-9]/", "-")}-env-${local.config.env.repository.protected_environment}"
+  enabled                      = true
+  access_type                  = "CONFIDENTIAL"
+  standard_flow_enabled        = false
   direct_access_grants_enabled = false
-  service_accounts_enabled = true
-  client_authenticator_type = "federated-jwt"
+  service_accounts_enabled     = true
+  client_authenticator_type    = "federated-jwt"
 
   extra_config = {
     "jwt.credential.issuer" = keycloak_kubernetes_identity_provider.github_actions.alias
-    "jwt.credential.sub" = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
+    "jwt.credential.sub"    = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
   }
 
   description = jsonencode(local.config.common_tags)
