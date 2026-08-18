@@ -1,3 +1,6 @@
+# Client Roles for kube-api client
+# Reference: https://www.keycloak.org/docs/latest/server_admin/#con-client-roles_server_administration_guide
+
 resource "keycloak_role" "kube_api_cluster_admin" {
   realm_id    = keycloak_realm.realm.id
   client_id   = keycloak_openid_client.kube_api.id

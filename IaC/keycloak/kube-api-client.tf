@@ -1,3 +1,6 @@
+# Clients are entities that can request authentication of a user.
+# Reference: https://www.keycloak.org/docs/latest/server_admin/#_oidc_clients
+
 # ephemeral "random_password" "kube_api_client_secret" {
 #   length           = 32
 #   override_special = "!#$%&*()-_=+[]{}<>:?"
