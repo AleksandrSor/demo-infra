@@ -13,8 +13,8 @@
 
 resource "keycloak_openid_client" "kube_api" {
   realm_id  = keycloak_realm.realm.id
-  client_id = "${local.config.project.name}-kube-api-3"
-  name      = "${local.config.project.name}-kube-api-3"
+  client_id = "${local.config.project.name}-kube-api"
+  name      = "${local.config.project.name}-kube-api"
 
   enabled = true
 
@@ -32,6 +32,8 @@ resource "keycloak_openid_client" "kube_api" {
   standard_token_exchange_enabled           = false
   oauth2_jwt_authorization_grant_enabled    = false
   oauth2_device_authorization_grant_enabled = false
+
+  full_scope_allowed = false
 
   valid_redirect_uris = [
     "http://localhost:8000",

@@ -80,3 +80,8 @@ certificates:
       - "aws.alek-sor.website"
 keycloak:
   realm: "demo-infra-project"
+  users:
+    - username: "kube-admin-1"
+      email: "kube-admin-1@alek-sor.website"
+      groups:
+        - "kube-admin"
