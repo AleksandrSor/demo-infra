@@ -3,6 +3,8 @@ on:
   pull_request:
     branches:
       - main
+      - dev
+      - prod
     types: [opened, synchronize, reopened]
 
 jobs:

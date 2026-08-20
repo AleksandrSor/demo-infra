@@ -46,6 +46,13 @@ IaC/
 │   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
 │   ├── terragrunt.hcl      # Stack entrypoint (depends on aws-eks outputs)
 │   └── variables.tf        # Stack inputs (cluster name + OIDC provider config)
+├── keycloak/               # Keycloak realm and Kubernetes identity management stack
+│   ├── github-actions.tf   # Keycloak client for GitHub Actions authentication
+│   ├── keycloak.tf         # Provider import for the Keycloak realm
+│   ├── kube-*.tf           # Kubernetes-facing users, groups, roles, and mappings
+│   ├── realm.tf            # Keycloak realm definition
+│   ├── terraform.tf        # Provider requirements (Keycloak ~> 5.0)
+│   └── variables.tf        # YAML config input and derived locals
 └── aws-route53-and-certs/  # Public DNS and TLS certificate stack
     ├── certificates.tf     # ACM certificates and validation outputs
     ├── data.tf             # Data sources (caller identity, region)
@@ -138,6 +145,20 @@ EKS identity provider stack for external OIDC authentication to the Kubernetes A
 | `aws_eks_identity_provider_config` | Configures an external OIDC IdP on the EKS cluster |
 
 This stack depends on `aws-eks` and consumes the cluster name from that stack via Terragrunt dependency outputs.
+
+### keycloak
+
+Keycloak stack for provisioning the demo realm, Kubernetes-related groups, users, and role mappings:
+
+| Resource | Purpose |
+|---|---|
+| `keycloak_realm` | Manages the demo Keycloak realm |
+| `keycloak_group` | Creates Kubernetes groups such as `kube-admin` |
+| `keycloak_user` | Provisions configured users from `config.yaml` |
+| `keycloak_user_groups` | Assigns users to Keycloak groups |
+| `keycloak_role` / role mappings | Configures Kubernetes API-related roles and scopes |
+
+This stack reads `keycloak.realm` and `keycloak.users` from `config.yaml`.
 
 ## Usage
 
