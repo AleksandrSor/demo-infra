@@ -13,9 +13,9 @@ Built with [OpenTofu](https://opentofu.org/) and [Flux v2](https://fluxcd.io/) f
 - **[Flux CD (GitOps)](fluxcd/README.md)** — Continuous deployment configuration
 - **[AWS EKS Stack](IaC/aws-eks/README.md)** — Self-managed Kubernetes cluster details
 - **[AWS EKS OIDC Stack](IaC/aws-eks-oidc/)** — EKS external OIDC identity provider configuration
+- **[Keycloak Stack](IaC/keycloak/)** — Keycloak realm, groups, and Kubernetes user provisioning
 - **[Route53 and Certificates Stack](IaC/aws-route53-and-certs/)** — Public DNS hosted zones and ACM certificates
 
----
 
 ## Project Structure
 
@@ -28,6 +28,7 @@ demo-infra/
 │   ├── demo-core/              # AWS bootstrap and foundational resources
 │   ├── aws-eks/                # EKS cluster, networking, and node groups
 │   ├── aws-eks-oidc/           # EKS external OIDC identity provider configuration
+│   ├── keycloak/               # Keycloak realm, groups, and user provisioning
 │   └── aws-route53-and-certs/  # Route53 hosted zones, ACM certificates, and ExternalDNS IAM
 ├── fluxcd/                     # Flux v2 configuration (see fluxcd/README.md)
 │   ├── clusters/               # Cluster-specific configurations
@@ -41,10 +42,7 @@ demo-infra/
 
 ## Support & Documentation
 
-- [IaC/README.md](IaC/README.md) — Infrastructure resources and modules
-- [IaC/aws-eks/README.md](IaC/aws-eks/README.md) — EKS-specific configuration
-- [IaC/aws-eks-oidc/](IaC/aws-eks-oidc/) — EKS identity provider configuration stack
-- [IaC/aws-route53-and-certs/](IaC/aws-route53-and-certs/) — Route53 and ACM stack
+- [IaC/keycloak/](IaC/keycloak/) — Keycloak realm and user provisioning stack
 - [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
