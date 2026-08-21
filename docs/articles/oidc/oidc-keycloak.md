@@ -4,13 +4,32 @@
 
 ## Introduction
 
-In my [previous article](./oidc-jwt-validation.md), I tested using ALB CRDs to offload validation of JWTs for OIDC based authentication to the Amazon EKS Kubernetes API.
+In my [previous article](./oidc-jwt-validation.md), I tested using ALB CRDs to offload JWT validation for OIDC-based authentication to the Amazon EKS Kubernetes API.
 
-In this article, I will share the Terraform/OpenTofu stack required to set up Keycloak as the OIDC provider with an explanation.
+In this article, I will share the Terraform/OpenTofu stack required to set up Keycloak as the OIDC provider and explain how it works.
+
+I am using the official [Keycloak Terraform provider](https://registry.terraform.io/providers/keycloak/keycloak/latest/docs).
+The provider documentation clearly explains how to connect Terraform/OpenTofu to a Keycloak instance.
+
+For the testing setup, I used a service-account client configuration (Client Credentials grant in OAuth 2.0) and environment variables to configure the provider.
+```bash
+KEYCLOAK_URL='https://your_keycloak/auth/realms/demo-infra-project'
+KEYCLOAK_REALM='demo-infra-project'
+KEYCLOAK_BASE_PATH='/auth'
+KEYCLOAK_CLIENT_ID='terraform'
+KEYCLOAK_CLIENT_SECRET='secret'
+```
+This declaration is enough to make it work:
+```hcl
+provider "keycloak" {
+
+}
+```
+For GitHub Actions runners, I used a JWT-federated client. It deserves a dedicated article on how to set it up.
 
 ## Client
 
-[Keycloak clients](https://www.keycloak.org/docs/latest/server_admin/index.html#assembly-managing-clients_server_administration_guide) is an entry point that your OIDC client interacts with to get authentication tokens.
+A [Keycloak client](https://www.keycloak.org/docs/latest/server_admin/index.html#assembly-managing-clients_server_administration_guide) is the entry point your OIDC client uses to obtain authentication tokens.
 
 [kube-api-client.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-api-client.tf)
 ```hcl
@@ -46,25 +65,23 @@ In this article, I will share the Terraform/OpenTofu stack required to set up Ke
   ]
 ```
 
-### explanation
+### Explanation
 
 ```hcl
 access_type = "CONFIDENTIAL"
 client_authenticator_type = "client-secret"
 ```
-create non-public client with client secret
+Creates a non-public client with a client secret.
 
 ```hcl
 standard_flow_enabled                     = true
 ```
-enable [Authorization Code Grant flow](https://aaronparecki.com/oauth-2-simplified/)
-
+Enables the [Authorization Code Grant flow](https://aaronparecki.com/oauth-2-simplified/).
 
 ```hcl
 full_scope_allowed = false
 ```
-token contains roles scoped only for this client.
-
+The token contains only the roles scoped for this client.
 
 ```hcl
 valid_redirect_uris = [
@@ -74,26 +91,24 @@ valid_redirect_uris = [
     "https://oauth.pstmn.io/v1/browser-callback",
 ]
 ```
-redirect urls allowed for standard flow.
+These are the redirect URLs allowed for the standard flow.
 
-
-``` 
+```text
     "http://localhost:8000",
     "http://localhost:18000",
 ```
-for [kubelogin](https://github.com/int128/kubelogin).
+For [kubelogin](https://github.com/int128/kubelogin).
 
-
-```
+```text
     "https://oauth.pstmn.io/v1/callback",
     "https://oauth.pstmn.io/v1/browser-callback",
 ```
-for [Postman](https://learning.postman.com/docs/use/send-requests/authorization/oauth-20).
+For [Postman](https://learning.postman.com/docs/use/send-requests/authorization/oauth-20).
 
 
 ## Client roles
 
-[Client roles](https://www.keycloak.org/docs/latest/server_admin/#con-client-roles_server_administration_guide) dedicated for this client.
+[Client roles](https://www.keycloak.org/docs/latest/server_admin/#con-client-roles_server_administration_guide) are dedicated to this client.
 
 [kube-api-client-roles.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-api-client-roles.tf)
 ```hcl
@@ -104,11 +119,11 @@ resource "keycloak_role" "kube_api_cluster_admin" {
   description = "cluster-admin role for kube-api"
 }
 ```
-This client-specific role will be included in a role claim of the token if they are assigned to a user.
+This client-specific role will be included in the token's role claim if it is assigned to a user.
 
 ## Groups
 
-[Groups in Keycloak]() manage role mappings for each user.
+[Groups in Keycloak](https://www.keycloak.org/docs/latest/server_admin/index.html#proc-managing-groups_server_administration_guide) manage role mappings for each user.
 
 kube-groups.tf
 ```hcl
@@ -126,11 +141,11 @@ resource "keycloak_group_roles" "kube_admin_group_roles" {
   ]
 }
 ```
-I'm mapping client-specific role to a group.
+I'm mapping a client-specific role to a group.
 
 ## Users
 
-[Maneging users](https://www.keycloak.org/docs/latest/server_admin/index.html#assembly-managing-users_server_administration_guide).
+[Managing users](https://www.keycloak.org/docs/latest/server_admin/index.html#assembly-managing-users_server_administration_guide).
 
 [kube-users.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-users.tf)
 ```hcl
@@ -151,7 +166,7 @@ resource "keycloak_user" "kube_user" {
 ```
 
 
-[kube-user-groups.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-user-groups.tf) assign them to groups.
+[kube-user-groups.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-user-groups.tf) assigns them to groups.
 ```hcl
 resource "keycloak_user_groups" "kube_admin_user_groups" {
   for_each = {
@@ -170,7 +185,7 @@ resource "keycloak_user_groups" "kube_admin_user_groups" {
 
 ## Client scope
 
-[Shared client configuration](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes) in an entity called a client scope. In my example, it is simply a set of mappers.
+[Shared client configuration](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes) is an entity called a client scope. In my example, it is simply a set of protocol mappers.
 
 [kube-api-client-scope.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-api-client-scope.tf)
 ```hcl
@@ -181,12 +196,13 @@ resource "keycloak_openid_client_scope" "kube_api" {
 ```
 
 ## Client scope mappers
-OIDC token [mappers](https://www.keycloak.org/docs/latest/server_admin/#_protocol-mappers) for kube-api client scope
+
+OIDC token [mappers](https://www.keycloak.org/docs/latest/server_admin/#_protocol-mappers) for the kube-api client scope.
 
 
 [kube-api-client-scope-mapper.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-api-client-scope-mapper.tf)
 
-### username mapper
+### Username mapper
 ```hcl
 resource "keycloak_openid_user_attribute_protocol_mapper" "kube_api_username" {
   realm_id        = keycloak_realm.realm.id
@@ -201,11 +217,11 @@ resource "keycloak_openid_user_attribute_protocol_mapper" "kube_api_username" {
 }
 
 ```
-***add_to_access_token*** - add this mapping to access token
+***add_to_access_token*** — adds this mapping to an access token
 
-***add_to_id_token*** - add this mapping to OIDC ID token
+***add_to_id_token*** — adds this mapping to an OIDC ID token
 
-### role mapper - most important
+### Role mapper — the most important one
 ```hcl
 resource "keycloak_openid_user_client_role_protocol_mapper" "kube_api_user_client_role_mapper" {
   realm_id        = keycloak_realm.realm.id
@@ -223,11 +239,11 @@ resource "keycloak_openid_user_client_role_protocol_mapper" "kube_api_user_clien
   add_to_id_token     = true
 }
 ```
-***claim_name***  - claim name
+***claim_name*** — claim name
 
-***client_id_for_role_mappings*** - client for roles mapping
+***client_id_for_role_mappings*** — client used for role mapping
 
-***client_role_prefix*** - prefix for role value
+***client_role_prefix*** — prefix for the role value
 
 As a result, the roles claim contains a flat, single-level list of assigned roles.
 
@@ -260,3 +276,72 @@ resource "keycloak_generic_role_mapper" "kube_api_cluster_admin" {
   role_id         = keycloak_role.kube_api_cluster_admin.id
 }
 ```
+
+## Default and optional client scopes
+
+[Linking](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes_linking) between a client scope and a client.
+
+[kube-api-client-scope.tf](https://github.com/AleksandrSor/demo-infra/blob/docs/keycloak/IaC/keycloak/kube-api-client-scope.tf).
+```hcl
+resource "keycloak_openid_client_default_scopes" "kube_api" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = keycloak_openid_client.kube_api.id
+
+  default_scopes = [
+    data.keycloak_openid_client_scope.acr.name,
+    data.keycloak_openid_client_scope.basic.name,
+    data.keycloak_openid_client_scope.web_origins.name,
+    keycloak_openid_client_scope.kube_api.name,
+  ]
+}
+
+resource "keycloak_openid_client_optional_scopes" "kube_api" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = keycloak_openid_client.kube_api.id
+
+  optional_scopes = [
+
+  ]
+}
+```
+`acr`, `basic`, and `web_origins` are default pre-existing mappers.
+This configuration keeps the token simple, clean, and not overly verbose.
+
+## Result
+
+Now I can get a token with [Postman](https://learning.postman.com/docs/use/send-requests/authorization/oauth-20) to explore it.
+
+```json
+{
+  "exp": ...,
+  "iat": ...,
+  "auth_time": ...,
+  "jti": "onrtac:4bb64894-da54-df2b-8879-7c4429366d81",
+  "iss": "https://keycloaj/auth/realms/demo-infra-project",
+  "aud": "demo-infra-kube-api",
+  "sub": "f321b181-dc87-47fc-97c4-9e9b579e8c1f",
+  "typ": "Bearer",
+  "azp": "demo-infra-kube-api",
+  "sid": "5y5bl3zlY6tbLXHAWcT8s1Zf",
+  "acr": "1",
+  "allowed-origins": [
+    "https://oauth.pstmn.io",
+    "http://localhost:18000",
+    "http://localhost:8000"
+  ],
+  "scope": "openid kube-api",
+  "roles": [
+    "kube-admin"
+  ],
+  "username": "kube-admin-1"
+}
+```
+The important claims are:
+- `iss` — issuer
+- `aud` — target audience
+- `roles` — mapping for Kubernetes groups in RBAC
+- `username` — username for Kubernetes
+
+## What next
+
+Now I can pass parameters from a provisioned client into a Kubernetes secret via the External Secrets Operator (ESO) and Flux CD variable substitution, and use them as parameters in ALB CRDs. I will cover this in my next article. Follow me!
