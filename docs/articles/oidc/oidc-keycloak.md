@@ -281,7 +281,7 @@ resource "keycloak_generic_role_mapper" "kube_api_cluster_admin" {
 
 [Linking](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes_linking) between a client scope and a client.
 
-[kube-api-client-scope.tf](https://github.com/AleksandrSor/demo-infra/blob/docs/keycloak/IaC/keycloak/kube-api-client-scope.tf).
+[kube-api-client-scope.tf](https://github.com/AleksandrSor/demo-infra/blob/main/IaC/keycloak/kube-api-client-scope.tf).
 ```hcl
 resource "keycloak_openid_client_default_scopes" "kube_api" {
   realm_id  = keycloak_realm.realm.id
