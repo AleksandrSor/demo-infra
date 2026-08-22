@@ -30,7 +30,6 @@ demo-infra/
 
 ## Support & Documentation
 
-- [IaC/keycloak/](IaC/keycloak/) — Keycloak realm and user provisioning stack
 - [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
 - [docs/articles/oidc/oidc-keycloak.md](docs/articles/oidc/oidc-keycloak.md) — OIDC with Keycloak and ALB Gateway API
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
