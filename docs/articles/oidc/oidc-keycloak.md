@@ -317,7 +317,7 @@ Now I can get a token with [Postman](https://learning.postman.com/docs/use/send-
   "iat": ...,
   "auth_time": ...,
   "jti": "onrtac:4bb64894-da54-df2b-8879-7c4429366d81",
-  "iss": "https://keycloaj/auth/realms/demo-infra-project",
+  "iss": "https://keycloak/auth/realms/demo-infra-project",
   "aud": "demo-infra-kube-api",
   "sub": "f321b181-dc87-47fc-97c4-9e9b579e8c1f",
   "typ": "Bearer",
