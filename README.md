@@ -4,18 +4,6 @@ Demo Infrastructure as Code (IaC) project to provision AWS resources for a fulls
 
 Built with [OpenTofu](https://opentofu.org/) and [Flux v2](https://fluxcd.io/) for GitOps, managed inside a dev container.
 
----
-
-## Quick Links
-
-- **[Infrastructure as Code (IaC)](IaC/README.md)** — OpenTofu/Terragrunt configuration for AWS resources
-- **[CI/CD Pipelines](.github/workflows/README.md)** — GitHub Actions workflows for security, validation, and deployment
-- **[Flux CD (GitOps)](fluxcd/README.md)** — Continuous deployment configuration
-- **[AWS EKS Stack](IaC/aws-eks/README.md)** — Self-managed Kubernetes cluster details
-- **[AWS EKS OIDC Stack](IaC/aws-eks-oidc/)** — EKS external OIDC identity provider configuration
-- **[Keycloak Stack](IaC/keycloak/)** — Keycloak realm, groups, and Kubernetes user provisioning
-- **[Route53 and Certificates Stack](IaC/aws-route53-and-certs/)** — Public DNS hosted zones and ACM certificates
-
 
 ## Project Structure
 
@@ -42,8 +30,8 @@ demo-infra/
 
 ## Support & Documentation
 
-- [IaC/keycloak/](IaC/keycloak/) — Keycloak realm and user provisioning stack
 - [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
+- [docs/articles/oidc/oidc-keycloak.md](docs/articles/oidc/oidc-keycloak.md) — OIDC: Keycloak setup for ALB Gateway API
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps

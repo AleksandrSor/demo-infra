@@ -101,7 +101,8 @@ spec:
 
 I am going to use [Keycloak](https://www.keycloak.org/) as an OIDC identity provider. [Cloud-IAM](https://www.cloud-iam.com/) lets you have a managed Keycloak instance for 1 realm and 100 users for free. It is ideal for a testing playground.
 
-Keycloak configuration is beyond the scope of this article for the sake of simplicity. I promise to publish how to do it next!
+Keycloak configuration is beyond the scope of this article for the sake of simplicity.
+You can find a detailed explanation in this [dedicated article](./oidc-keycloak.md).
 
 ## EKS OIDC provider
 Instructions from AWS can be found [here](https://docs.aws.amazon.com/eks/latest/userguide/authenticate-oidc-identity-provider.html).
