@@ -13,7 +13,7 @@ The provider documentation clearly explains how to connect Terraform/OpenTofu to
 
 For the testing setup, I used a service-account client configuration (Client Credentials grant in OAuth 2.0) and environment variables to configure the provider.
 ```bash
-KEYCLOAK_URL='https://your_keycloak/auth/realms/demo-infra-project'
+KEYCLOAK_URL='https://keycloak/auth/realms/demo-infra-project'
 KEYCLOAK_REALM='demo-infra-project'
 KEYCLOAK_BASE_PATH='/auth'
 KEYCLOAK_CLIENT_ID='terraform'
