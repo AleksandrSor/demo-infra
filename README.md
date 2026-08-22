@@ -31,7 +31,7 @@ demo-infra/
 ## Support & Documentation
 
 - [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
-- [docs/articles/oidc/oidc-keycloak.md](docs/articles/oidc/oidc-keycloak.md) — OIDC with Keycloak and ALB Gateway API
+- [docs/articles/oidc/oidc-keycloak.md](docs/articles/oidc/oidc-keycloak.md) — OIDC: Keycloak setup for ALB Gateway API
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps

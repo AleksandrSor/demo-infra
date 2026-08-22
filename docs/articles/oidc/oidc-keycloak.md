@@ -1,4 +1,4 @@
-# OIDC: JWT validation with ALB controller and Gateway API
+# OIDC: Keycloak setup for ALB Gateway API
 
 ![scheme](./oidc-keycloak.png "scheme.")
 
