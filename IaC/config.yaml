@@ -43,7 +43,7 @@ network:
       cidr: "10.10.160.0/19"
       az: *node2az
 eks:
-  version: "1.35"
+  version: "1.36"
   nodes:
     core:
       desired_capacity: 1
