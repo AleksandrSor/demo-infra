@@ -18,7 +18,7 @@ dependency "keycloak" {
 
   mock_outputs_allowed_terraform_commands = ["init", "validate"]
   mock_outputs = {
-    oidc_client_config = { "name" : "demo-infra-keycloak", "client_id" : "demo-infra-kube-api", "issuer_url" : "https://keycloak.example.com/auth/realms/demo-infra-project", "groups_claim" : "roles", "groups_prefix" : "oidc:", "username_claim" : "username", "username_prefix" : "oidc-" }
+    oidc_client_config = { "name" : "example-keycloak", "client_id" : "example-kube-api", "issuer_url" : "https://keycloak.example.com/auth/realms/example-realm", "groups_claim" : "roles", "groups_prefix" : "oidc:", "username_claim" : "username", "username_prefix" : "oidc-" }
   }
   skip_outputs = get_env("IAC_QUICK_CHECK", "false") == "true"
 }

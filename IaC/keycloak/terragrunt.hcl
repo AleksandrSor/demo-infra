@@ -4,5 +4,5 @@ include "root" {
 }
 
 inputs = {
-  realm_url = "${get_env("KEYCLOAK_URL")}${get_env("KEYCLOAK_BASE_PATH", "")}/realms/${get_env("KEYCLOAK_REALM")}"
+  realm_url = "${get_env("KEYCLOAK_URL", "keycloak.example.com")}${get_env("KEYCLOAK_BASE_PATH", "")}/realms/${get_env("KEYCLOAK_REALM", "example-realm")}"
 }
