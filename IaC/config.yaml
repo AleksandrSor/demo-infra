@@ -1,4 +1,5 @@
 env:
+  commonDomain: "aws.alek-sor.website"
   region: us-east-1
   tf_user:
     name: tf-user
