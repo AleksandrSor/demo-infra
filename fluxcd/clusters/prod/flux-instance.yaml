@@ -13,3 +13,8 @@ spec:
   prune: true
   interval: 10m
   timeout: 5m
+  postBuild:
+    substitute:
+      gitRef: "refs/heads/prod"
+      gitUrl: "https://github.com/AleksandrSor/demo-infra.git"
+      gitSecret: "demo-infra"

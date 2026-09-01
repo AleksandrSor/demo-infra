@@ -9,9 +9,9 @@ spec:
       name: aws
     env:
       - name: AWS_DEFAULT_REGION
-        value: us-east-1
-    txtOwnerId: demo-infra-prod
-    txtPrefix: demo-infra-prod
+        value: "${region}"
+    txtOwnerId: "${projectName}-prod"
+    txtPrefix: "${projectName}-prod"
     policy: sync
     enableGatewayListenerSets: true
     sources:
