@@ -25,7 +25,7 @@ locals {
   backend_render_vars = {
     key_spec                   = "AES_256"
     state_key                  = "${get_path_from_repo_root()}/tofu.tfstate"
-    plaintext_fallback_enabled = true
+    plaintext_fallback_enabled = false
   }
 
 }
