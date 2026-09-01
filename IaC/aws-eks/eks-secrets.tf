@@ -6,7 +6,7 @@ resource "aws_secretsmanager_secret_version" "env_params" {
   secret_id = aws_secretsmanager_secret.env_params.id
   secret_string = jsonencode({
     projectName  = local.config.project.name
-    region       = local.config.env.region
+    region       = data.aws_region.current.region
     commonDomain = local.config.env.commonDomain
   })
 }
