@@ -2,7 +2,7 @@
 # Reference: https://www.keycloak.org/docs/latest/server_admin/#_oidc_clients
 
 locals {
-  client_secret_version = 9
+  client_secret_version = 10
 }
 
 ephemeral "random_password" "kube_api_client_secret" {

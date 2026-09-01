@@ -24,5 +24,6 @@ module "aws_secretmanager" {
     username_prefix = local.client_config.username_prefix
 
     required_claims = local.client_config.required_claims
+    jwksEndpoint    = local.client_config.jwksEndpoint
   })
 }

@@ -5,10 +5,11 @@ locals {
   realm_name = local.config.keycloak.realm
 
   client_config = {
-    name       = "${local.config.project.name}-keycloak"
-    client_id  = keycloak_openid_client.kube_api.client_id
-    issuer_url = var.realm_url
-    audience   = ["${keycloak_openid_client.kube_api.client_id}"]
+    name         = "${local.config.project.name}-keycloak"
+    client_id    = keycloak_openid_client.kube_api.client_id
+    issuer_url   = var.realm_url
+    jwksEndpoint = "${var.realm_url}/protocol/openid-connect/certs"
+    audience     = ["${keycloak_openid_client.kube_api.client_id}"]
 
     groups_claim  = "roles"
     groups_prefix = "oidc:"
