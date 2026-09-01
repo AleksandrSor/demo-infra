@@ -1,22 +1,14 @@
-variable "oidc_client_config" {
-  description = "OIDC client configuration for EKS cluster"
-  type = object({
-    name = string
-    client_id = string
-    client_secret = optional(string)
-    issuer_url = string
-
-    groups_claim = optional(string, "roles")
-    groups_prefix = optional(string, "oidc:")
-    
-    username_claim = optional(string, "username")
-    username_prefix = optional(string, "oidc-")
-    
-    required_claims = optional(map(string))
-  })
+variable "secret_value" {
+  description = "value to be stored in the secret"
+  type = string
   sensitive = true
+  ephemeral = true
 }
 
-variable "client_secret_version" {
+variable "secret_name" {
+  type = string
+}
+
+variable "secret_version" {
   type = number
 }
