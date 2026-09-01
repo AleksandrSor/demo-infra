@@ -20,7 +20,9 @@ jobs:
     runs-on: ubuntu-24.04-arm
     env:
       TF_VAR_public_access_cidrs: ${{ vars.EKS_PUBLIC_ACCESS_CIDRS }}
-      TF_VAR_eks_oidc_provider_config: ${{ secrets.EKS_OIDC_PROVIDER_CONFIG }}
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
+      KEYCLOAK_BASE_PATH: ${{ vars.KEYCLOAK_BASE_PATH }}
     defaults:
       run:
         working-directory: ${{ env.working_dir }}
