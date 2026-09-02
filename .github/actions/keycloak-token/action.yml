@@ -11,8 +11,12 @@ inputs:
     description: 'The Keycloak client ID for token retrieval'
     required: true
 outputs:
-  token:
+  access-token:
     description: 'The obtained Keycloak token'
+    value: ${{ steps.get-kc-token.outputs.keycloakAccessToken }}
+  id-token:
+    description: 'The obtained Keycloak ID token'
+    value: ${{ steps.get-kc-token.outputs.keycloakIdToken }}
 runs:
   using: "composite"
   steps:
@@ -69,12 +73,4 @@ runs:
         echo "----"
         echo "Decoded KC Token:"
         echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
-        echo "----"
-    - name: Test KC token
-      shell: bash
-      run: |
-        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/userinfo" \
-          -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakIdToken }}" | jq -r '.')
-        echo "----"
-        echo "${KEYCLOAK_RESPONSE}"
         echo "----"

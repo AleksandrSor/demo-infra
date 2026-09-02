@@ -31,3 +31,10 @@ jobs:
           keycloak-url: ${{ env.KEYCLOAK_URL }}
           keycloak-realm: ${{ env.KEYCLOAK_REALM }}
           keycloak-client-id: repo:${{ github.repository }}:environment:${{ env.DEPLOY_ENV }}
+      - name: Test KC token
+        run: |
+          KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+            -H "Authorization: Bearer ${{ steps.keycloak-token.outputs.id-token }}" | jq -r '.')
+          echo "----"
+          echo "${KEYCLOAK_RESPONSE}"
+          echo "----"
