@@ -68,7 +68,6 @@ jobs:
           KEYCLOAK_ACCESS_TOKEN: ${{ steps.keycloak-token.outputs.access-token }}
           KEYCLOAK_CLIENT_ID: ${{ vars.KEYCLOAK_CLIENT_ID }}
         run: |
-          export
           echo "### 🏗️ Terragrunt Plan Output" >> $GITHUB_STEP_SUMMARY
           echo '```terraform' >> $GITHUB_STEP_SUMMARY
           terragrunt run --all --non-interactive --log-format bare -- plan >> $GITHUB_STEP_SUMMARY
