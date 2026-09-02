@@ -53,11 +53,11 @@ runs:
       id: get-kc-token
       shell: bash
       run: |
-        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
           -H 'Content-Type: application/x-www-form-urlencoded' \
           -d 'grant_type=client_credentials' \
           -d 'scope=openid' \
-          -d 'client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak' \
+          -d 'client_id=${{ inputs.keycloak-client-id }}' \
           -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
           -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
         KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
@@ -73,7 +73,7 @@ runs:
     - name: Test KC token
       shell: bash
       run: |
-        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/userinfo" \
           -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakIdToken }}" | jq -r '.')
         echo "----"
         echo "${KEYCLOAK_RESPONSE}"
@@ -81,7 +81,7 @@ runs:
     - name: Admin Test KC token
       shell: bash
       run: |
-        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/admin/realms/$KEYCLOAK_REALM" \
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/admin/realms/${{ inputs.keycloak-realm }}" \
           -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakAccessToken }}" \
           -H "Accept: application/json" | jq -r '.')
         echo "----"
