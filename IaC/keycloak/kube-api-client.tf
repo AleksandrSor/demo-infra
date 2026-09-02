@@ -1,15 +1,14 @@
 # Clients are entities that can request authentication of a user.
 # Reference: https://www.keycloak.org/docs/latest/server_admin/#_oidc_clients
 
-# ephemeral "random_password" "kube_api_client_secret" {
-#   length           = 32
-#   override_special = "!#$%&*()-_=+[]{}<>:?"
-# }
+locals {
+  client_secret_version = 10
+}
 
-# import {
-#   to = keycloak_openid_client.kube_api
-#   id = "${local.config.keycloak.realm}/d219e02f-278b-4a38-99bc-6c6b80df1a8f"
-# }
+ephemeral "random_password" "kube_api_client_secret" {
+  length  = 86
+  special = false
+}
 
 resource "keycloak_openid_client" "kube_api" {
   realm_id  = keycloak_realm.realm.id
@@ -21,8 +20,8 @@ resource "keycloak_openid_client" "kube_api" {
   access_type = "CONFIDENTIAL"
 
   client_authenticator_type = "client-secret"
-  # client_secret_wo         = ephemeral.random_password.kube_api_client_secret.result
-  # client_secret_wo_version = "version1"
+  client_secret_wo          = ephemeral.random_password.kube_api_client_secret.result
+  client_secret_wo_version  = local.client_secret_version
 
 
   standard_flow_enabled                     = true

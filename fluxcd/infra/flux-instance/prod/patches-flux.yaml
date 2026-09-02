@@ -6,10 +6,10 @@ metadata:
 spec:
   sync:
     kind: GitRepository
-    url: "https://github.com/AleksandrSor/demo-infra.git"
-    ref: "refs/heads/main"
+    url: "${gitUrl}"
+    ref: "${gitRef}"
     path: "fluxcd/clusters/prod"
-    pullSecret: "demo-infra"
+    pullSecret: "${gitSecret}"
     provider: github
     interval: 5m
   kustomize:  
