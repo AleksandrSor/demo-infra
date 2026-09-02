@@ -15,6 +15,7 @@ jobs:
       name: test-keycloak
       deployment: false
     env:
+      DEPLOY_ENV: test-keycloak
       KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
       KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
       KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}/auth/realms/${{ vars.KEYCLOAK_REALM }}"
@@ -29,4 +30,4 @@ jobs:
         with:
           keycloak-url: ${{ env.KEYCLOAK_URL }}
           keycloak-realm: ${{ env.KEYCLOAK_REALM }}
-          keycloak-client-id: repo:AleksandrSor/demo-infra:environment:test-keycloak
+          keycloak-client-id: repo:${{ github.repository }}:environment:${{ env.DEPLOY_ENV }}

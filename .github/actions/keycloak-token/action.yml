@@ -78,12 +78,3 @@ runs:
         echo "----"
         echo "${KEYCLOAK_RESPONSE}"
         echo "----"
-    - name: Admin Test KC token
-      shell: bash
-      run: |
-        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/admin/realms/${{ inputs.keycloak-realm }}" \
-          -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakAccessToken }}" \
-          -H "Accept: application/json" | jq -r '.')
-        echo "----"
-        echo "${KEYCLOAK_RESPONSE}"
-        echo "----"
