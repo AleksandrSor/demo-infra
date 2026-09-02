@@ -1,0 +1,42 @@
+name: test JWT action
+on:
+  push:
+    branches:
+      - test/test-jwt
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-action:
+    runs-on: ubuntu-24.04-arm
+    environment: 
+      name: test-keycloak
+      deployment: false
+    env:
+      DEPLOY_ENV: test-keycloak
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
+      KEYCLOAK_BASE_PATH: ${{ vars.KEYCLOAK_BASE_PATH || ''}}
+      KEYCLOAK_CLIENT_ID: ${{ vars.KEYCLOAK_CLIENT_ID }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: keycloak-token
+        name: Get KC token
+        uses: ./.github/actions/keycloak-token
+        with:
+          keycloak-url: ${{ env.KEYCLOAK_URL }}
+          keycloak-realm: ${{ env.KEYCLOAK_REALM }}
+          keycloak-client-id: repo:${{ github.repository }}:environment:${{ env.DEPLOY_ENV }}
+          keycloak-base-path: ${{ env.KEYCLOAK_BASE_PATH || ''}}
+      - name: Test KC token
+        run: |
+          KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+            -H "Authorization: Bearer ${{ steps.keycloak-token.outputs.id-token }}" | jq -r '.')
+          echo "----"
+          echo "${KEYCLOAK_RESPONSE}"
+          echo "----"

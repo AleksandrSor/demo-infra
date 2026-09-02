@@ -1,0 +1,79 @@
+name: Keycloak Token Action
+description: 'Action to obtain a Keycloak token'
+inputs:
+  keycloak-url:
+    description: 'The URL of the Keycloak server'
+    required: true
+  keycloak-realm:
+    description: 'The Keycloak realm'
+    required: true
+  keycloak-base-path:
+    description: 'The base path for Keycloak (optional)'
+    required: false
+  keycloak-client-id:
+    description: 'The Keycloak client ID for token retrieval'
+    required: true
+outputs:
+  access-token:
+    description: 'The obtained Keycloak token'
+    value: ${{ steps.get-kc-token.outputs.keycloakAccessToken }}
+  id-token:
+    description: 'The obtained Keycloak ID token'
+    value: ${{ steps.get-kc-token.outputs.keycloakIdToken }}
+runs:
+  using: "composite"
+  steps:
+    - name: Export
+      run: export
+      shell: bash
+    - name: Get JWT token
+      id: get-gh-token
+      env:
+        KEYCLOAK_AUDIENCE: "${{ inputs.keycloak-url }}${{ inputs.keycloak-base-path || '' }}/realms/${{ inputs.keycloak-realm }}"
+      uses: actions/github-script@v9
+      with:
+        script: |
+          const audience = process.env['KEYCLOAK_AUDIENCE'];
+          let ghToken = await core.getIDToken(audience);
+          core.setOutput('ghToken', ghToken);
+
+          function decodeJWT(jwtToken) {
+            try {
+              // A JWT has 3 parts: Header, Payload, Signature
+              const [header, payload, signature] = jwtToken.split('.');
+              
+              // Decode base64url string to standard UTF-8 text
+              const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
+              
+              // Parse the string into a readable JavaScript object
+              return JSON.parse(decodedPayload);
+            } catch (error) {
+              console.error("Invalid JWT format", error);
+              return null;
+            }
+          }
+
+          console.log('----');
+          console.log(decodeJWT(ghToken));
+          console.log('----');
+    - name: Get KC token
+      id: get-kc-token
+      shell: bash
+      run: |
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
+          -H 'Content-Type: application/x-www-form-urlencoded' \
+          -d 'grant_type=client_credentials' \
+          -d 'scope=openid' \
+          -d 'client_id=${{ inputs.keycloak-client-id }}' \
+          -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
+          -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+        KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
+        echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "----"
+        echo "KC Response:"
+        echo "${KEYCLOAK_RESPONSE}"
+        echo "----"
+        echo "Decoded KC Token:"
+        echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+        echo "----"
