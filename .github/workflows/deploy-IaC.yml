@@ -62,7 +62,7 @@ jobs:
 
       - name: Apply terragrunt configuration
         env:
-          KEYCLOAK_TOKEN: ${{ steps.keycloak-token.outputs.access-token }}
+          KEYCLOAK_ACCESS_TOKEN: ${{ steps.keycloak-token.outputs.access-token }}
           KEYCLOAK_CLIENT_ID: ${{ vars.KEYCLOAK_CLIENT_ID }}
         run: |
           echo "### Terragrunt Apply Output" >> $GITHUB_STEP_SUMMARY
