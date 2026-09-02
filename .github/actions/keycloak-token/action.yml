@@ -19,3 +19,71 @@ runs:
     - name: Export
       run: export
       shell: bash
+    - name: Get JWT token
+      id: get-gh-token
+      env:
+        KEYCLOAK_AUDIENCE: "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}"
+      uses: actions/github-script@v9
+      with:
+        script: |
+          const audience = process.env['KEYCLOAK_AUDIENCE'];
+          let ghToken = await core.getIDToken(audience);
+          core.setOutput('ghToken', ghToken);
+
+          function decodeJWT(jwtToken) {
+            try {
+              // A JWT has 3 parts: Header, Payload, Signature
+              const [header, payload, signature] = jwtToken.split('.');
+              
+              // Decode base64url string to standard UTF-8 text
+              const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
+              
+              // Parse the string into a readable JavaScript object
+              return JSON.parse(decodedPayload);
+            } catch (error) {
+              console.error("Invalid JWT format", error);
+              return null;
+            }
+          }
+
+          console.log('----');
+          console.log(decodeJWT(ghToken));
+          console.log('----');
+    - name: Get KC token
+      id: get-kc-token
+      shell: bash
+      run: |
+        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+          -H 'Content-Type: application/x-www-form-urlencoded' \
+          -d 'grant_type=client_credentials' \
+          -d 'scope=openid' \
+          -d 'client_id=repo:AleksandrSor/demo-infra:environment:test-keycloak' \
+          -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
+          -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+        KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
+        echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "----"
+        echo "KC Response:"
+        echo "${KEYCLOAK_RESPONSE}"
+        echo "----"
+        echo "Decoded KC Token:"
+        echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+        echo "----"
+    - name: Test KC token
+      shell: bash
+      run: |
+        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+          -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakIdToken }}" | jq -r '.')
+        echo "----"
+        echo "${KEYCLOAK_RESPONSE}"
+        echo "----"
+    - name: Admin Test KC token
+      shell: bash
+      run: |
+        KEYCLOAK_RESPONSE=$(curl -s "$KEYCLOAK_URL/auth/admin/realms/$KEYCLOAK_REALM" \
+          -H "Authorization: Bearer ${{ steps.get-kc-token.outputs.keycloakAccessToken }}" \
+          -H "Accept: application/json" | jq -r '.')
+        echo "----"
+        echo "${KEYCLOAK_RESPONSE}"
+        echo "----"
