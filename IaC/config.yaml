@@ -56,7 +56,7 @@ eks:
       taints:
         "role.core": ["true:NoSchedule"]
         "CriticalAddonsOnly": ["true:NoSchedule"]
-      max_pods: 16 # manually set up max pods per node, beware of memory reservation per pod
+      max_pods: 18 # manually set up max pods per node, beware of memory reservation per pod
     app:
       desired_capacity: 0
       max_capacity: 2
