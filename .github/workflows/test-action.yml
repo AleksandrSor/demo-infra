@@ -19,6 +19,10 @@ jobs:
       KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
       KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}/auth/realms/${{ vars.KEYCLOAK_REALM }}"
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - id: keycloak-token
         name: Get KC token
         uses: ./.github/actions/keycloak-token
