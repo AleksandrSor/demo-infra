@@ -7,6 +7,9 @@ inputs:
   keycloak-realm:
     description: 'The Keycloak realm'
     required: true
+  keycloak-base-path:
+    description: 'The base path for Keycloak (optional)'
+    required: false
   keycloak-client-id:
     description: 'The Keycloak client ID for token retrieval'
     required: true
@@ -26,7 +29,7 @@ runs:
     - name: Get JWT token
       id: get-gh-token
       env:
-        KEYCLOAK_AUDIENCE: "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}"
+        KEYCLOAK_AUDIENCE: "${{ inputs.keycloak-url }}${{ inputs.keycloak-base-path || '' }}/realms/${{ inputs.keycloak-realm }}"
       uses: actions/github-script@v9
       with:
         script: |
