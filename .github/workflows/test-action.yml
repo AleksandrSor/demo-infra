@@ -1,0 +1,28 @@
+name: test JWT action
+on:
+  push:
+    branches:
+      - test/test-jwt
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-action:
+    runs-on: ubuntu-24.04-arm
+    environment: 
+      name: test-keycloak
+      deployment: false
+    env:
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
+      KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}/auth/realms/${{ vars.KEYCLOAK_REALM }}"
+    steps:
+      - id: keycloak-token
+        name: Get KC token
+        uses: ./.github/actions/keycloak-token
+        with:
+          keycloak-url: ${{ env.KEYCLOAK_URL }}
+          keycloak-realm: ${{ env.KEYCLOAK_REALM }}
+          keycloak-client-id: repo:AleksandrSor/demo-infra:environment:test-keycloak

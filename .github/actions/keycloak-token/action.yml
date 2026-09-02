@@ -1,0 +1,21 @@
+name: Keycloak Token Action
+description: 'Action to obtain a Keycloak token'
+inputs:
+  keycloak-url:
+    description: 'The URL of the Keycloak server'
+    required: true
+  keycloak-realm:
+    description: 'The Keycloak realm'
+    required: true
+  keycloak-client-id:
+    description: 'The Keycloak client ID for token retrieval'
+    required: true
+outputs:
+  token:
+    description: 'The obtained Keycloak token'
+runs:
+  using: "composite"
+  steps:
+    - name: Export
+      run: export
+      shell: bash
