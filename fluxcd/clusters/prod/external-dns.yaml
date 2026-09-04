@@ -13,6 +13,7 @@ spec:
     - name: external-secrets-custom
   prune: true
   interval: 30m
+  retryInterval: 5m
   timeout: 5m
   postBuild:
     substituteFrom:

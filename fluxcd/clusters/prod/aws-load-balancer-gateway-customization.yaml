@@ -11,5 +11,6 @@ spec:
   dependsOn:
     - name: aws-load-balancer-controller
   prune: true
-  interval: 1h
+  interval: 30m
+  retryInterval: 5m
   timeout: 5m

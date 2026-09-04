@@ -9,5 +9,6 @@ spec:
     name: flux-system
   path: ./fluxcd/infra/flux-operator/prod
   prune: true
-  interval: 1h
+  interval: 30m
+  retryInterval: 5m
   timeout: 5m
