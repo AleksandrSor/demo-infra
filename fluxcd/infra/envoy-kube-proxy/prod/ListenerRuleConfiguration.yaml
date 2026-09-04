@@ -11,4 +11,4 @@ spec:
         additionalClaims:
           - name: "aud"
             format: "single-string"
-            values: ["${audience}"]
+            values: ${audience}
