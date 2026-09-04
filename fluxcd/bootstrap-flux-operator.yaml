@@ -1,0 +1,20 @@
+strategy: 
+  type: Recreate
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: role.core
+          operator: Exists
+        - key: kubernetes.io/os
+          operator: In
+          values:
+          - linux
+tolerations:
+  - effect: NoSchedule
+    key: CriticalAddonsOnly
+    operator: Exists
+  - effect: NoSchedule
+    key: role.core
+    operator: Exists
