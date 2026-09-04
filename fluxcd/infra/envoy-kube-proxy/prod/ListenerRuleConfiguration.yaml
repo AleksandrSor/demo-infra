@@ -7,8 +7,8 @@ spec:
     - type: "jwt-validation"
       jwtValidationConfig:
         jwksEndpoint: "${jwksEndpoint}"
-        issuer: "${issuer}"
+        issuer: "${issuer_url}"
         additionalClaims:
           - name: "aud"
             format: "single-string"
-            values: ["${aud}"]
+            values: ["${audience}"]
