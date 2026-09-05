@@ -5,7 +5,7 @@ resource "aws_placement_group" "eks_nodes" {
 }
 
 resource "aws_autoscaling_group" "eks_nodes" {
-  for_each = local.config.eks.nodes
+  for_each            = local.config.eks.nodes
   desired_capacity    = each.value.desired_capacity
   max_size            = each.value.max_capacity
   min_size            = each.value.min_capacity

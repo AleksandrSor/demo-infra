@@ -1,11 +1,11 @@
 data "aws_ec2_instance_type" "eks_nodes" {
-  for_each = local.config.eks.nodes
+  for_each      = local.config.eks.nodes
   instance_type = each.value.type
 }
 
 data "aws_ssm_parameter" "eks_nodes_ami_id" {
   for_each = local.config.eks.nodes
-  name = "/aws/service/bottlerocket/aws-k8s-${local.config.eks.version}/${one(data.aws_ec2_instance_type.eks_nodes[each.key].supported_architectures)}/latest/image_id"
+  name     = "/aws/service/bottlerocket/aws-k8s-${local.config.eks.version}/${one(data.aws_ec2_instance_type.eks_nodes[each.key].supported_architectures)}/latest/image_id"
 }
 
 resource "aws_launch_template" "eks_nodes" {

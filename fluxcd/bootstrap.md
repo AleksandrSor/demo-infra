@@ -2,6 +2,7 @@
 ```bash
 helm install flux-operator oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
   --namespace flux-system \
+  -f bootstrap-flux-operator.yaml
   --create-namespace
 ```
 
@@ -38,7 +39,7 @@ spec:
   sync:
     kind: GitRepository
     url: "https://github.com/AleksandrSor/demo-infra.git"
-    ref: "refs/heads/main"
+    ref: "refs/heads/prod"
     path: "fluxcd/clusters/prod"
     pullSecret: "demo-infra"
     provider: github

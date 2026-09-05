@@ -6,18 +6,56 @@ Continuous deployment using Flux v2 for GitOps-driven infrastructure and applica
 
 ```
 fluxcd/
-├── bootstrap.md       # Bootstrap instructions for Flux
-├── clusters/          # Cluster-specific Flux configurations (prod, staging, etc.)
-│   └── prod/          # Production cluster configuration
-│       └── flux-instance.yaml  # Flux instance with patches and kustomizations
-├── infra/             # Infrastructure components (addons, operators)
+├── bootstrap-flux-operator.yaml   # Bootstrap manifest for Flux Operator
+├── bootstrap.md                   # Bootstrap instructions for Flux
+├── clusters/
+│   └── prod/
+│       ├── aws-load-balancer-controller.yaml
+│       ├── aws-load-balancer-gateway-customization.yaml
+│       ├── envoy-kube-proxy.yaml
+│       ├── external-dns.yaml
+│       ├── external-secrets-custom.yaml
+│       ├── external-secrets.yaml
+│       ├── flux-instance.yaml
+│       ├── flux-operator.yaml
+│       ├── README.md
+│       └── webapp.yaml
+├── infra/
+│   ├── aws-load-balancer-controller/
+│   │   ├── base/
+│   │   └── prod/
+│   ├── aws-load-balancer-gateway-customization/
+│   │   ├── base/
+│   │   └── prod/
+│   ├── envoy-kube-proxy/
+│   │   ├── base/
+│   │   ├── gateway/
+│   │   ├── prod/
+│   │   └── rbac/
+│   ├── external-dns/
+│   │   ├── base/
+│   │   └── prod/
+│   ├── external-secrets/
+│   │   ├── base/
+│   │   └── prod/
+│   ├── external-secrets-custom/
+│   │   ├── base/
+│   │   └── prod/
 │   ├── flux-instance/
-│   ├── flux-operator/
-│   └── ...
-└── app/               # Application deployments
-    ├── front/         # Frontend applications
-    ├── back/          # Backend services
-    └── ...
+│   │   ├── base/
+│   │   └── prod/
+│   └── flux-operator/
+│       ├── base/
+│       └── prod/
+└── app/
+    └── front/
+        └── webapp/
+            ├── base/
+            ├── dev/
+            ├── flux/
+            ├── gateway/
+            ├── httproute/
+            └── prod/
 ```
 
 ## Bootstrap
@@ -26,37 +64,43 @@ See [bootstrap.md](./bootstrap.md) for initial Flux installation and configurati
 
 ## Production Configuration
 
-Production cluster Flux configuration is defined in `clusters/prod/flux-instance.yaml`, which includes:
+Production cluster Flux configuration is defined in `clusters/prod/` and managed via multiple Kustomization entries such as `flux-instance.yaml`, `flux-operator.yaml`, `aws-load-balancer-controller.yaml`, `envoy-kube-proxy.yaml`, `external-dns.yaml`, `external-secrets.yaml`, and `webapp.yaml`. These include:
 
-- **Kustomizations**: GitOps-driven resource rendering and application
-- **Patches**: Cross-cutting modifications to Deployments (e.g., tolerations, affinity)
-- **Dependencies**: Ordered reconciliation of components
+- **Kustomizations**: GitOps-driven rendering and reconciliation of platform and app resources
+- **Patches**: Environment-specific overrides for deployments and routes
+- **Dependencies**: Ordered reconciliation for infrastructure before workloads
+- **Runtime configuration**: Production-specific tuning for gateways, controllers, and app settings
 
 ### Tolerations
 
-All Deployments in the production cluster receive the following tolerations:
+Production workloads can be pinned to control-plane or core node pools using tolerations such as:
 - `CriticalAddonsOnly:NoSchedule`
-- `role.core:NoSchedule` (for core node taints)
+- `role.core:NoSchedule`
 
 ### Node Affinity
 
-Deployments are scheduled with node affinity preferences for labeled nodes.
+Critical system components and applications are scheduled against labeled core nodes using node affinity rules.
 
 ## Infrastructure Components
 
 Located in `infra/`, these components provide cluster-wide capabilities:
 
-- **flux-operator**: Flux control plane and management
-- **flux-instance**: Cluster-specific Flux configuration
-- Additional operators and system components
+- **flux-operator**: Flux operator installation and control-plane configuration
+- **flux-instance**: Cluster-specific Flux instance and reconciliation settings
+- **aws-load-balancer-controller**: AWS Load Balancer Controller deployment and tuning
+- **aws-load-balancer-gateway-customization**: Gateway API defaults and ALB settings
+- **envoy-kube-proxy**: Envoy-based Kubernetes API gateway and proxy configuration
+- **external-dns**: DNS record management for public services
+- **external-secrets**: Cluster secret synchronization and Kubernetes integration
+- **external-secrets-custom**: Custom secret-store and secret wiring for application credentials
 
 ## Application Deployments
 
-Located in `app/`, application manifests are organized by service:
+Located in `app/`, application manifests are organized by service and environment:
 
-- **frontend**: Web UI services
-- **backend**: API and service mesh components
-- ...
+- **front/webapp**: Web application workload with `base`, `dev`, `prod`, `gateway`, `httproute`, and `flux` overlays
+- **Environment-specific overlays**: Separate kustomize layers for dev and production
+- **Ingress/Gateway routing**: HTTPRoute and Gateway configuration for exposed services
 
 ## GitOps Workflow
 

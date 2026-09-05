@@ -11,5 +11,11 @@ spec:
   dependsOn:
     - name: flux-operator
   prune: true
-  interval: 10m
+  interval: 30m
+  retryInterval: 5m
   timeout: 5m
+  postBuild:
+    substitute:
+      gitRef: "refs/heads/prod"
+      gitUrl: "https://github.com/AleksandrSor/demo-infra.git"
+      gitSecret: "demo-infra"

@@ -9,7 +9,8 @@ spec:
     name: flux-system
   path: ./fluxcd/infra/aws-load-balancer-controller/prod
   prune: true
-  interval: 1h
+  interval: 30m
+  retryInterval: 5m
   timeout: 5m
   postBuild:
     substituteFrom:

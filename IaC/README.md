@@ -6,65 +6,88 @@ AWS infrastructure provisioning using OpenTofu and Terragrunt.
 
 ```
 IaC/
-├── backend.tftpl           # Backend template rendered by Terragrunt
-├── config.hcl              # Shared Terragrunt locals and config loading
-├── config.yaml             # Central environment and tagging config
-├── root.hcl                # Shared Terragrunt root configuration
-├── demo-core/              # Core AWS bootstrap module
-│   ├── data.tf             # Data sources (caller identity, region)
-│   ├── kms.tf              # KMS key for encryption
-│   ├── oidc.tf             # GitHub Actions OIDC provider
-│   ├── output.tf           # Useful bootstrap outputs
-│   ├── provider.tf         # AWS provider config + default tags
-│   ├── role.tf             # IAM roles (execution + KMS + OIDC trust)
-│   ├── s3.tf               # S3 bucket + policy for tfstate
-│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-│   ├── terragrunt.hcl      # Stack entrypoint and backend generation
-│   ├── user.tf             # IAM automation user + access keys in Secrets Manager
-│   └── variables.tf        # YAML config input and derived locals
-├── aws-eks/                # EKS cluster and networking
-│   ├── alb-role.tf         # IAM policy/role + pod identity for ALB controller
-│   ├── alb-secgroup.tf     # Shared backend security group for ALB controller
-│   ├── alb-subnets.tf      # ALB/NLB subnets, associations, and ALB subnet ACL
-│   ├── data.tf             # Data sources (caller identity, region)
-│   ├── eks-addon-*.tf      # EKS add-ons (CoreDNS, kube-proxy, VPC CNI, pod-identity-agent)
-│   ├── eks-cluster-*.tf    # EKS cluster, IAM, OIDC, and access control
-│   ├── eks-nodes-*.tf      # Node groups, IAM, security groups, and launch templates
-│   ├── eks-pods-secgroups.tf # Pod security group configuration
-│   ├── node-subnets.tf     # Worker node subnets
-│   ├── pod-subnets.tf      # Pod secondary CIDR subnets
-│   ├── provider.tf         # AWS provider config + default tags
-│   ├── ssm.tf              # EC2 Instance Management Configuration
-│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-│   ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
-│   ├── variables.tf        # YAML config input and local values
-│   └── vpc.tf              # VPC, IGW, route tables
-├── aws-eks-oidc/           # EKS external OIDC identity provider stack
-│   ├── data.tf             # Data sources (caller identity, region)
-│   ├── eks-identity-provider.tf # EKS OIDC identity provider configuration
-│   ├── provider.tf         # AWS provider config + default tags
-│   ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-│   ├── terragrunt.hcl      # Stack entrypoint (depends on aws-eks outputs)
-│   └── variables.tf        # Stack inputs (cluster name + OIDC provider config)
-├── keycloak/               # Keycloak realm and Kubernetes identity management stack
-│   ├── github-actions.tf   # Keycloak client for GitHub Actions authentication
-│   ├── keycloak.tf         # Provider import for the Keycloak realm
-│   ├── kube-*.tf           # Kubernetes-facing users, groups, roles, and mappings
-│   ├── realm.tf            # Keycloak realm definition
-│   ├── terraform.tf        # Provider requirements (Keycloak ~> 5.0)
-│   └── variables.tf        # YAML config input and derived locals
-└── aws-route53-and-certs/  # Public DNS and TLS certificate stack
-    ├── certificates.tf     # ACM certificates and validation outputs
-    ├── data.tf             # Data sources (caller identity, region)
-    ├── externaldns-iam-role-and-identity.tf # ExternalDNS IAM role and pod identity
-    ├── provider.tf         # AWS provider config + default tags
-    ├── terraform.tf        # Provider requirements (AWS ~> 6.0)
-    ├── terragrunt.hcl      # Stack entrypoint (inherits root config)
-    ├── variables.tf        # YAML config input and local values
-    └── zone.tf             # Route53 hosted zones and nameserver outputs
+├── backend.tftpl                     # Backend template rendered by Terragrunt
+├── config.hcl                        # Shared Terragrunt locals and config loading
+├── config.yaml                       # Central environment and tagging config
+├── root.hcl                          # Shared Terragrunt root configuration
+├── demo-core/                        # Core AWS bootstrap module
+│   ├── data.tf                       # Data sources (caller identity, region)
+│   ├── kms.tf                        # KMS key for encryption
+│   ├── oidc.tf                       # GitHub Actions OIDC provider
+│   ├── output.tf                     # Useful bootstrap outputs
+│   ├── provider.tf                   # AWS provider config + default tags
+│   ├── role.tf                       # IAM roles (execution + KMS + OIDC trust)
+│   ├── s3.tf                         # S3 bucket + policy for tfstate
+│   ├── terraform.tf                  # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl                # Stack entrypoint and backend generation
+│   ├── user.tf                       # IAM automation user + access keys in Secrets Manager
+│   └── variables.tf                  # YAML config input and derived locals
+├── aws-eks/                          # EKS cluster and networking
+│   ├── alb-role.tf                   # IAM policy/role + pod identity for ALB controller
+│   ├── alb-secgroup.tf               # Shared backend security group for ALB controller
+│   ├── alb-subnets.tf                # ALB/NLB subnets, associations, and ALB subnet ACL
+│   ├── data.tf                       # Data sources (caller identity, region)
+│   ├── eks-addon-coredns.tf          # CoreDNS addon configuration
+│   ├── eks-addon-kube-proxy.tf       # kube-proxy addon configuration
+│   ├── eks-addon-pod-identity-agent.tf # Pod Identity Agent addon configuration
+│   ├── eks-addon-vpccni.tf           # VPC CNI addon configuration
+│   ├── eks-cluster-access.tf         # Cluster access entries and policy associations
+│   ├── eks-cluster-oidc.tf           # EKS OIDC provider config and certificate thumbprint
+│   ├── eks-cluster-secgroup.tf       # Control plane and cluster security group rules
+│   ├── eks-cluster.tf                # Cluster definition and IAM role data
+│   ├── eks-nodes-group.tf            # EKS node groups and autoscaling config
+│   ├── eks-nodes-iam-roles.tf        # Node IAM roles and instance profiles
+│   ├── eks-nodes-secgroups.tf        # Node security group configuration
+│   ├── eks-nodes-template-bottlerocket.tftpl # Bottlerocket user-data template
+│   ├── eks-nodes-template.tf         # Launch template and EC2 node setup
+│   ├── eks-pods-secgroups.tf         # Pod security group configuration
+│   ├── node-subnets.tf               # Worker node subnets
+│   ├── pod-subnets.tf                # Pod secondary CIDR subnets
+│   ├── provider.tf                   # AWS provider config + default tags
+│   ├── ssm.tf                        # EC2 instance management configuration
+│   ├── terraform.tf                  # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl                # Stack entrypoint (inherits root config)
+│   ├── variables.tf                  # YAML config input and local values
+│   └── vpc.tf                        # VPC, IGW, route tables
+├── aws-eks-oidc/                     # EKS external OIDC identity provider stack
+│   ├── data.tf                       # Data sources (caller identity, region)
+│   ├── eks-identity-provider.tf      # EKS OIDC identity provider configuration
+│   ├── provider.tf                   # AWS provider config + default tags
+│   ├── terraform.tf                  # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl                # Stack entrypoint (depends on aws-eks outputs)
+│   └── variables.tf                  # Stack inputs (cluster name + OIDC provider config)
+├── aws-route53-and-certs/            # Public DNS and TLS certificate stack
+│   ├── README.md                     # Stack-specific usage and notes
+│   ├── certificates.tf               # ACM certificates and validation outputs
+│   ├── data.tf                       # Data sources (caller identity, region)
+│   ├── externaldns-iam-role-and-identity.tf # ExternalDNS IAM role and pod identity
+│   ├── provider.tf                   # AWS provider config + default tags
+│   ├── terraform.tf                  # Provider requirements (AWS ~> 6.0)
+│   ├── terragrunt.hcl                # Stack entrypoint (inherits root config)
+│   ├── variables.tf                  # YAML config input and local values
+│   └── zone.tf                       # Route53 hosted zones and nameserver outputs
+├── keycloak/                         # Keycloak realm and Kubernetes identity management stack
+│   ├── aws-secretmanager.tf          # AWS Secret Manager integration for key material
+│   ├── data.tf                       # Data sources used by the stack
+│   ├── github-actions.tf             # Keycloak client for GitHub Actions authentication
+│   ├── keycloak.tf                   # Provider import for the Keycloak realm
+│   ├── kube-api-client-roles.tf      # Client role definitions for Kubernetes API access
+│   ├── kube-api-client-scope-mapper.tf # Scope mapper configuration for client access
+│   ├── kube-api-client-scope-roles.tf # Scope-to-role mapping for API clients
+│   ├── kube-api-client-scope.tf      # OAuth scope definitions for the client
+│   ├── kube-api-client.tf            # Kubernetes API client registration
+│   ├── kube-groups.tf                # Kubernetes-related Keycloak groups
+│   ├── kube-user-groups.tf           # User-to-group assignments
+│   ├── kube-users.tf                 # User provisioning for Kubernetes access
+│   ├── modules/                      # Shared module definitions
+│   ├── output.tf                     # Stack outputs
+│   ├── realm-management.tf           # Realm management and admin client configuration
+│   ├── realm.tf                     # Keycloak realm definition
+│   ├── terraform.tf                  # Provider requirements (Keycloak ~> 5.0)
+│   ├── terragrunt.hcl                # Stack entrypoint and backend config
+│   └── variables.tf                  # YAML config input and derived locals
 ```
 
-Note: `IaC/test` is intentionally excluded.
 
 ## Module Overview
 
@@ -236,14 +259,3 @@ eks:
         "role.core": ["true:NoSchedule"]
       max_pods: 16
 ```
-
-
-### Module Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `config_file` | `../config.yaml` | Path to the YAML config consumed by the module |
-| `public_access_cidrs` | `["0.0.0.0/32"]` | CIDR blocks allowed to access the EKS cluster endpoint |
-| `admin_user_arns` | `[]` | IAM user or role ARNs granted admin access to the EKS cluster |
-| `eks_cluster_name` | n/a | EKS cluster name for identity provider attachment (provided via Terragrunt dependency) |
-| `eks_oidc_provider_config` | n/a | Object describing external OIDC provider config (`name`, `client_id`, `issuer_url`, optional claim mappings) |
