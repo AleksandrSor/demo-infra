@@ -20,7 +20,7 @@ https://kubernetes.default.svc, depending on the distribution.
 Second, the OpenID Provider Configuration endpoint (/.well-known/openid-configuration) and the JWKS endpoint are not publicly accessible by default.
 You can address this by configuring the API server with the --service-account-issuer and --service-account-jwks-uri flags and by mirroring the OIDC endpoints to a public server.
 
-You may be surprised to learn (yes, again) that AWS EKS supports this out of the box. Thanks to IRSA, it works through OIDC.
+You may be surprised to learn (yes, again) that AWS EKS addresses this out of the box. Thanks to [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html), it uses OIDC to work with AWS IAM.
 
 Run the following command:
 ```
@@ -30,3 +30,7 @@ aws eks describe-cluster \
   --output text
 ```
 Then append the OIDC discovery path `/.well-known/openid-configuration` to the returned issuer URL.
+
+## EKS Pod Identity Agent
+
+[EKS Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html) is a new way to grant an IAM role to an application running in a pod. AWS recommends using EKS Pod Identity whenever possible to grant pods access to AWS resources. [A comparison table is also available here](https://docs.aws.amazon.com/eks/latest/userguide/service-accounts.html).
