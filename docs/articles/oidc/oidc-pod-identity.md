@@ -39,7 +39,7 @@ Then append the OIDC discovery path `/.well-known/openid-configuration` to the r
 
 #### 1. [Create a Pod Identity association](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-assign-target-role.html#_how_it_works)
 outside Kubernetes, for example:
-[eso-addon.tf](/demo-infra/IaC/aws-eks/eso-addon.tf)
+[eso-addon.tf](/IaC/aws-eks/eso-addon.tf)
 ```hcl
 resource "aws_eks_pod_identity_association" "eso_addon" {
   cluster_name    = aws_eks_cluster.cluster.name  #eks cluster name
@@ -120,16 +120,16 @@ Pay attention: this is a local bind address. The Pod Identity Agent must run on 
 Prerequisites and documentation are available [here](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-agent-setup.html#pod-id-agent-add-on-create).
 Examples from the demo project are shown below.
 Since my node role already includes `AmazonEKSWorkerNodePolicy`:
-[eks-nodes-iam-roles](/demo-infra/IaC/aws-eks/eks-nodes-iam-roles.tf)
-```hcl
+[eks-nodes-iam-roles](/IaC/aws-eks/eks-nodes-iam-roles.tf)
+```terraform
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.nodes.name
 }
 ```
 I only need to install the add-on:
-[eks-addon-pod-identity-agent](/demo-infra/IaC/aws-eks/eks-addon-pod-identity-agent.tf)
-```hcl
+[eks-addon-pod-identity-agent](/IaC/aws-eks/eks-addon-pod-identity-agent.tf)
+```terraform
 data "aws_eks_addon_version" "latest_pod_identity_agent" {
   addon_name         = "eks-pod-identity-agent"
   kubernetes_version = aws_eks_cluster.cluster.version
