@@ -34,3 +34,116 @@ Then append the OIDC discovery path `/.well-known/openid-configuration` to the r
 ## EKS Pod Identity Agent
 
 [EKS Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html) is a new way to grant an IAM role to an application running in a pod. AWS recommends using EKS Pod Identity whenever possible to grant pods access to AWS resources. [A comparison table is also available here](https://docs.aws.amazon.com/eks/latest/userguide/service-accounts.html).
+
+### How it works
+
+#### 1. [Create a Pod Identity association](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-assign-target-role.html#_how_it_works)
+outside Kubernetes, for example:
+[eso-addon.tf](/demo-infra/IaC/aws-eks/eso-addon.tf)
+```hcl
+resource "aws_eks_pod_identity_association" "eso_addon" {
+  cluster_name    = aws_eks_cluster.cluster.name  #eks cluster name
+  namespace       = local.eso_namespace
+  service_account = local.eso_service_account
+  role_arn        = aws_iam_role.eso_role.arn     #role for service account
+}
+``` 
+This association can be created before the Namespace and ServiceAccount are created.
+
+#### 2. [When Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-how-it-works.html#pod-id-agent-pod) starts
+
+a new pod that uses a service account with an EKS Pod Identity association, it adds the following content to the pod manifest:
+```yaml
+    env:
+    - name: AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE
+      value: "/var/run/secrets/pods.eks.amazonaws.com/serviceaccount/eks-pod-identity-token"
+    - name: AWS_CONTAINER_CREDENTIALS_FULL_URI
+      value: "http://169.254.170.23/v1/credentials"
+    volumeMounts:
+    - mountPath: "/var/run/secrets/pods.eks.amazonaws.com/serviceaccount/"
+      name: eks-pod-identity-token
+  volumes:
+  - name: eks-pod-identity-token
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          audience: pods.eks.amazonaws.com
+          expirationSeconds: 86400 # 24 hours
+          path: eks-pod-identity-token
+```
+Pay attention to the volume configuration: it uses a [projected volume](https://kubernetes.io/docs/concepts/storage/projected-volumes/) with a [TokenRequest](https://kubernetes.io/docs/reference/kubernetes-api/storage/csi-driver-v1/#TokenRequest).
+Kubernetes places a service account token with a specific audience at `/var/run/secrets/pods.eks.amazonaws.com/serviceaccount/eks-pod-identity-token`.
+You can inspect it with:
+```bash
+cat /var/run/secrets/pods.eks.amazonaws.com/serviceaccount/eks-pod-identity-token \
+  | cut -d. -f2 \
+  | base64 -d 2>/dev/null \
+  | jq .
+```
+It looks like this:
+```JSON
+{
+  "aud": [
+    "pods.eks.amazonaws.com"
+  ],
+  "iss": "https://oidc.eks.us-east-1.amazonaws.com/id/<EKS_CLUSTER_ID>",
+  "kubernetes.io": {
+    "namespace": "external-secrets",
+    "node": {
+      "name": "<EKS_NODE_NAME>"
+    },
+    "pod": {
+      "name": "external-secrets-debug"
+    },
+    "serviceaccount": {
+      "name": "external-secrets"
+    }
+  },
+  "sub": "system:serviceaccount:external-secrets:external-secrets"
+}
+```
+
+#### 3. An application running in a pod
+obtains AWS STS credentials through the AWS SDK by using `eks-pod-identity-token` with `AWS_CONTAINER_CREDENTIALS_FULL_URI`:
+```yaml
+    env:
+    - name: AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE
+      value: "/var/run/secrets/pods.eks.amazonaws.com/serviceaccount/eks-pod-identity-token"
+    - name: AWS_CONTAINER_CREDENTIALS_FULL_URI
+      value: "http://169.254.170.23/v1/credentials"
+```
+Pay attention: this is a local bind address. The Pod Identity Agent must run on the node.
+
+### Installation
+
+Prerequisites and documentation are available [here](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-agent-setup.html#pod-id-agent-add-on-create).
+Examples from the demo project are shown below.
+Since my node role already includes `AmazonEKSWorkerNodePolicy`:
+[eks-nodes-iam-roles](/demo-infra/IaC/aws-eks/eks-nodes-iam-roles.tf)
+```hcl
+resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.nodes.name
+}
+```
+I only need to install the add-on:
+[eks-addon-pod-identity-agent](/demo-infra/IaC/aws-eks/eks-addon-pod-identity-agent.tf)
+```hcl
+data "aws_eks_addon_version" "latest_pod_identity_agent" {
+  addon_name         = "eks-pod-identity-agent"
+  kubernetes_version = aws_eks_cluster.cluster.version
+  most_recent        = true
+}
+
+
+resource "aws_eks_addon" "pod_identity_agent" {
+  cluster_name  = aws_eks_cluster.cluster.name
+  addon_name    = "eks-pod-identity-agent"
+  addon_version = data.aws_eks_addon_version.latest_pod_identity_agent.version
+
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+```
+
+
