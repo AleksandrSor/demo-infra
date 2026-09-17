@@ -12,15 +12,14 @@ My entire demo flow requires zero static credentials. Let me explain it in more 
 
 You may be surprised to learn that a [ServiceAccount token](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) issued by the Kubernetes control plane is an OIDC-compliant JWT. This makes Kubernetes an OIDC-compliant identity provider for external services.
 
-The Kubernetes API server even publishes an OpenID Provider Configuration document at `/.well-known/openid-configuration` and related JSON Web Key Set (JWKS) at `/openid/v1/jwks`.
+The Kubernetes API server even publishes an OpenID Provider Configuration document at `/.well-known/openid-configuration` and a related JSON Web Key Set (JWKS) at `/openid/v1/jwks`.
 
 However, there are a few limitations.
-First, the issuer URL is set out of the box to either https://kubernetes.default.svc.cluster.local or
-https://kubernetes.default.svc, depending on the distribution.
+First, the issuer URL is set out of the box to either https://kubernetes.default.svc.cluster.local or https://kubernetes.default.svc, depending on the distribution.
 Second, the OpenID Provider Configuration endpoint (/.well-known/openid-configuration) and the JWKS endpoint are not publicly accessible by default.
 You can address this by configuring the API server with the --service-account-issuer and --service-account-jwks-uri flags and by mirroring the OIDC endpoints to a public server.
 
-You may be surprised to learn (yes, again) that AWS EKS addresses this out of the box. Thanks to [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html), it uses OIDC to work with AWS IAM.
+You may be surprised to learn (yes, again) that AWS EKS addresses this out of the box. Thanks to [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html), it uses OIDC to integrate with AWS IAM.
 
 Run the following command:
 ```
@@ -38,7 +37,8 @@ Then append the OIDC discovery path `/.well-known/openid-configuration` to the r
 ### How it works
 
 #### 1. [Create a Pod Identity association](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-assign-target-role.html#_how_it_works)
-outside Kubernetes, for example:
+
+Create it outside Kubernetes, for example:
 [eso-addon.tf](/IaC/aws-eks/eso-addon.tf)
 ```hcl
 resource "aws_eks_pod_identity_association" "eso_addon" {
@@ -48,11 +48,11 @@ resource "aws_eks_pod_identity_association" "eso_addon" {
   role_arn        = aws_iam_role.eso_role.arn     #role for service account
 }
 ``` 
-This association can be created before the Namespace and ServiceAccount are created.
+This association can be created before the namespace and service account are created.
 
-#### 2. [When Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-how-it-works.html#pod-id-agent-pod) starts
+#### 2. [When Amazon EKS starts a new pod](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-how-it-works.html#pod-id-agent-pod)
 
-a new pod that uses a service account with an EKS Pod Identity association, it adds the following content to the pod manifest:
+When a new pod uses a service account with an EKS Pod Identity association, Amazon EKS adds the following content to the pod manifest:
 ```yaml
     env:
     - name: AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE
@@ -104,8 +104,9 @@ It looks like this:
 }
 ```
 
-#### 3. An Application running in a Pod
-obtains AWS STS credentials through the AWS SDK by using `eks-pod-identity-token` with `AWS_CONTAINER_CREDENTIALS_FULL_URI`:
+#### 3. An application running in a pod obtains AWS STS credentials
+
+through the AWS SDK by using `eks-pod-identity-token` with `AWS_CONTAINER_CREDENTIALS_FULL_URI`:
 ```yaml
     env:
     - name: AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE
@@ -113,13 +114,14 @@ obtains AWS STS credentials through the AWS SDK by using `eks-pod-identity-token
     - name: AWS_CONTAINER_CREDENTIALS_FULL_URI
       value: "http://169.254.170.23/v1/credentials"
 ```
-Pay attention: this is a local bind address. The Pod Identity Agent must run on the node.
+Note that this is a local bind address. The Pod Identity Agent must run on the node.
 
 ### Installation
 
 Prerequisites and documentation are available [here](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-agent-setup.html#pod-id-agent-add-on-create).
-Examples from the demo project are shown below.
+Examples from this demo project are shown below.
 Since my node role already includes `AmazonEKSWorkerNodePolicy`:
+
 [eks-nodes-iam-roles](/IaC/aws-eks/eks-nodes-iam-roles.tf)
 ```terraform
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
@@ -128,6 +130,7 @@ resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
 }
 ```
 I only need to install the add-on:
+
 [eks-addon-pod-identity-agent](/IaC/aws-eks/eks-addon-pod-identity-agent.tf)
 ```terraform
 data "aws_eks_addon_version" "latest_pod_identity_agent" {
@@ -149,7 +152,9 @@ resource "aws_eks_addon" "pod_identity_agent" {
 ### External Secrets configuration for Pod Identity
 
 Documentation is available [here](https://external-secrets.io/latest/provider/aws-access/).
+
 [eso-addon.tf](/IaC/aws-eks/eso-addon.tf)
+
 Assume role policy and IAM role:
 ```terraform
 locals {
@@ -234,6 +239,7 @@ resource "aws_iam_role_policy_attachment" "eso_addon_policy_attachment" {
 }
 ```
 
+
 Pod Identity association:
 ```terraform
 resource "aws_eks_pod_identity_association" "eso_addon" {
@@ -244,4 +250,181 @@ resource "aws_eks_pod_identity_association" "eso_addon" {
 }
 ```
 
+### External DNS configuration for Pod Identity
+
+[externaldns-iam-role-and-identity.tf](/IaC/aws-route53-and-certs/externaldns-iam-role-and-identity.tf)
+
+Assume role policy and IAM role:
+```terraform
+data "aws_iam_policy_document" "externaldns_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes-namespace"
+      values   = [local.externaldns_namespace]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes-service-account"
+      values   = [local.externaldns_service_account]
+    }
+  }
+}
+
+resource "aws_iam_role" "externaldns_role" {
+  name               = "${local.config.project.name}-externaldns-addon"
+  assume_role_policy = data.aws_iam_policy_document.externaldns_assume_role.json
+}
+```
+
+
+IAM role policy:
+```terraform
+data "aws_iam_policy_document" "externaldns_policy" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "route53:ChangeResourceRecordSets",
+      "route53:ListResourceRecordSets",
+      "route53:ListTagsForResources"
+    ]
+
+    resources = [
+      for zone in aws_route53_zone.managed : zone.arn
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "route53:ListHostedZones",
+      "route53:ListHostedZonesByName"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "externaldns_policy" {
+  name   = "${local.config.project.name}-externaldns-policy"
+  policy = data.aws_iam_policy_document.externaldns_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "externaldns_policy_attachment" {
+  role       = aws_iam_role.externaldns_role.name
+  policy_arn = aws_iam_policy.externaldns_policy.arn
+}
+```
+
+
+Pod Identity association:
+```terraform
+resource "aws_eks_pod_identity_association" "externaldns" {
+  cluster_name    = var.eks_cluster_name
+  namespace       = local.externaldns_namespace
+  service_account = local.externaldns_service_account
+  role_arn        = aws_iam_role.externaldns_role.arn
+}
+```
+
+### AWS Load Balancer Controller configuration for Pod Identity
+
+Documentation is available [here](https://github.com/kubernetes-sigs/aws-load-balancer-controller/tree/main/helm/aws-load-balancer-controller#setup-iam-for-serviceaccount).
+
+[alb-role.tf](/IaC/aws-eks/alb-role.tf)
+
+Assume role policy and IAM role:
+```terraform
+locals {
+  alb_namespace       = "kube-system"
+  alb_service_account = "aws-load-balancer-controller"
+}
+
+data "aws_iam_policy_document" "alb_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes-namespace"
+      values   = [local.alb_namespace]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/kubernetes-service-account"
+      values   = [local.alb_service_account]
+    }
+  }
+}
+
+resource "aws_iam_role" "alb_controller_role" {
+  name               = "${local.config.project.name}-alb-controller-role"
+  assume_role_policy = data.aws_iam_policy_document.alb_assume_role.json
+}
+```
+
+
+IAM role policy:
+```terraform
+locals {
+  alb_policy_url      = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json"
+}
+
+data "http" "alb_iam_policy_source" {
+  url = local.alb_policy_url
+
+  request_headers = {
+    Accept = "application/json"
+  }
+}
+
+
+resource "aws_iam_policy" "alb_load_balancer_controller" {
+  name        = "${local.config.project.name}-alb-controller-policy"
+  description = "IAM policy for AWS ALB Load Balancer Controller"
+  policy      = data.http.alb_iam_policy_source.response_body
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_role_attachment" {
+  policy_arn = aws_iam_policy.alb_load_balancer_controller.arn
+  role       = aws_iam_role.alb_controller_role.name
+}
+```
+
+
+Pod Identity association:
+```terraform
+resource "aws_eks_pod_identity_association" "alb_controller" {
+  cluster_name    = aws_eks_cluster.cluster.name
+  role_arn        = aws_iam_role.alb_controller_role.arn
+  namespace       = local.alb_namespace
+  service_account = local.alb_service_account
+}
+```
 
