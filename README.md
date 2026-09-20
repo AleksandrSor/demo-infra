@@ -1,4 +1,4 @@
-# demo-infra
+xw# demo-infra
 
 Demo Infrastructure as Code (IaC) project to provision AWS resources for a fullstack demo application.
 
@@ -32,6 +32,8 @@ demo-infra/
 
 - [docs/articles/oidc/oidc-jwt-validation.md](docs/articles/oidc/oidc-jwt-validation.md) — OIDC JWT validation with ALB controller and Gateway API
 - [docs/articles/oidc/oidc-keycloak.md](docs/articles/oidc/oidc-keycloak.md) — OIDC: Keycloak setup for ALB Gateway API
+- [docs/articles/oidc/oidc-external-secrets.md](docs/articles/oidc/oidc-external-secrets.md) — OIDC: Deliver OIDC parameters via External Secrets, AWS Secrets Manager, and FluxCD
+- [docs/articles/oidc/oidc-pod-identity.md](docs/articles/oidc/oidc-pod-identity.md) — OIDC: EKS Pod Identity
 - [.github/workflows/README.md](.github/workflows/README.md) — CI/CD workflows
 - [fluxcd/README.md](fluxcd/README.md) — GitOps deployment
 - [fluxcd/bootstrap.md](fluxcd/bootstrap.md) — Flux initialization steps

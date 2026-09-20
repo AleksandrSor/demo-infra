@@ -1,4 +1,4 @@
-# OIDC: Deliver OIDC parameters unattended using External Secrets, AWS Secrets Manager, and FluxCD.
+# OIDC: Deliver OIDC parameters unattended using External Secrets, AWS Secrets Manager, and FluxCD
 
 ![scheme](./oidc-external-secrets.png "scheme.")
 
@@ -12,7 +12,7 @@ In this post, I want to describe how to deliver OIDC parameters from a Keycloak 
 
 Moreover, the entire flow does not require any static credentials to be stored. I promise to explain how to achieve a zero-static-credentials setup in a future post. Follow me!
 
-## AWS Secret Manager
+## AWS Secrets Manager
 
 As a first step, let OpenTofu/Terraform store the client parameters in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/). From there, they can be delivered further using the pull-based approach of the [External Secrets Operator](https://external-secrets.io/).
 
@@ -78,7 +78,7 @@ resource "aws_secretsmanager_secret_version" "secret_version" {
 }
 ```
 
-## External Secret Operator
+## External Secrets Operator
 
 [External Secrets Operator](https://external-secrets.io/latest/) is a Kubernetes operator that retrieves information from external APIs and automatically injects the values into a Kubernetes Secret.
 
