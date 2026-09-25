@@ -4,7 +4,7 @@
 
 ## Introduction
 
-In my last posts, I briefly mentioned the important topic of zero static credentials. This is especially relevant today, as interactions with AI agents in protected environments can unexpectedly expose credentials.
+In my previous posts, I briefly mentioned the important topic of zero static credentials. This is especially relevant today, as interactions with AI agents in protected environments can unexpectedly expose credentials.
 
 In this part, I explain how to authenticate my GitHub Actions jobs with the AWS API to provision AWS resources without static credentials.
 
@@ -54,8 +54,8 @@ Token example from the official documentation:
 }
 ```
 
-Most important part is the `sub` claim.
-> `sub` is the stable subject identifier for the token issuer, and it is usually the safest way to correlate a returning principal
+The most important part is the `sub` claim.
+> `sub` is the stable subject identifier for the token issuer, and it is usually the safest way to correlate a returning principal.
 
 The `sub` claim can vary depending on whether the job runs against a ref, tag, pull request, or environment.
 
@@ -69,7 +69,7 @@ Syntax:
 Example:
 > repo:octo-org/octo-repo:environment:Production
 
-#### specific branch
+#### Specific branch
 
 The subject claim includes the branch name of the workflow, but only if the job doesn't reference an environment, and if the workflow is not triggered by a pull request event.
 
@@ -114,8 +114,128 @@ jobs:
         run: |
             aws sts get-caller-identity
 ```
-More information is available [here](https://github.com/aws-actions/configure-aws-credentials).
+More information is available in the [GitHub Action repository](https://github.com/aws-actions/configure-aws-credentials).
 
 ## AWS Federation
 
+[AWS OIDC Federation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html) allows us to use any OIDC IdP (Identity Provider) to obtain AWS STS tokens with role permissions, which we can then use to manage AWS resources.
+
+First, I need to register the GitHub OIDC provider as an IdP in my AWS account. This can be done through the AWS Console or CLI, as described [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html).
+```bash
+aws iam create-open-id-connect-provider --url \
+"https://token.actions.githubusercontent.com" --thumbprint-list \
+"6938fd4d98bab03faadb97b34396831e3780aea1" --client-id-list \
+'sts.amazonaws.com'
+```
+
+Next, I need to create a role with the correct trust policy.
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": "repo:<ORG-NAME/REPO-NAME>:*"
+                },
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                }
+            }
+        }
+    ]
+}
+```
+Pay attention to the `sub` claim. It can vary depending on the event type described in the previous section. When using the `aws-actions/configure-aws-credentials` action, the token includes the `"aud": "sts.amazonaws.com"` claim.
+
+
 ## GitHub Actions Job
+
+Let's put all of this together in a working workflow for the demo project.
+
+### Registering GitHub OIDC as an IdP in AWS
+
+[oidc.tf](/IaC/demo-core/oidc.tf)
+```terraform
+resource "aws_iam_openid_connect_provider" "github" {
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+}
+```
+
+### Create a role for GitHub Actions jobs
+
+[role.tf](/IaC/demo-core/role.tf)
+```terraform
+data "aws_iam_policy_document" "tf_execution_role_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"]
+    }
+  }
+}
+
+resource "aws_iam_role" "tf_execution_role" {
+  name               = local.config.env.tf_role_name
+  assume_role_policy = data.aws_iam_policy_document.tf_execution_role_policy.json
+}
+```
+Note that I allow tokens only from a specific environment in the `sub` claim.
+
+### Create a GitHub Actions workflow
+
+[deploy-IaC.yml](/.github/workflows/deploy-IaC.yml)
+```yaml
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: IaC Deploy
+    environment: 
+      name: production
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+    
+      - name: Configure AWS Credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+            aws-region: ${{ vars.AWS_REGION }}
+            role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
+            output-credentials: true
+
+      - name: get caller identity
+        run: |
+            aws sts get-caller-identity
+```
+
+## Additional links
+
+- [Use IAM roles to connect GitHub Actions to actions in AWS](https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/) - AWS Security Blog
