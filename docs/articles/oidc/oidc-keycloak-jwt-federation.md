@@ -65,3 +65,43 @@ runs:
           console.log('----');
 ```
 This composite action uses `actions/github-script` and the `core.getIDToken(audience)` function with a custom audience value. Keycloak expects the `aud` claim to match the `issuer_url` of the Keycloak realm endpoint.
+
+Example of a decoded GitHub token from the test workflow:
+```json
+{
+  actor: 'AleksandrSor',
+  actor_id: '...',
+  aud: 'https://<KEYCLOAK_URL>/auth/realms/demo-infra-project',
+  ...
+  environment: 'test-keycloak',
+  ...
+  iss: 'https://token.actions.githubusercontent.com',
+  ...
+  sub: 'repo:AleksandrSor/demo-infra:environment:test-keycloak',
+  ...
+}
+```
+
+More information about a custom way of obtaining a GitHub OIDC token can be found [here](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-cloud-providers).
+
+Now I need to exchange my GitHub token for a Keycloak token with the correct permissions to manage my Keycloak instance. Before I can do that, I need to register the GitHub OIDC provider in Keycloak.
+
+## Keycloak JWT Federation
+
+I want to eliminate the need to store static credentials, and Keycloak JWT federation helps me achieve that.
+
+The first step to setting up federated client authentication is to define a trust relationship between Keycloak and the external identity providers. This is done by creating a new identity provider in the realm.
+
+Keycloak currently has three types of identity providers that support federated client authentication:
+
+- OpenID Connect
+
+- SPIFFE
+
+- Kubernetes
+
+More information is available in this [blog post](https://www.keycloak.org/2026/01/federated-client-authentication).
+
+Since the GitHub OIDC provider does not expose a client authentication endpoint, it cannot be registered properly as an OpenID Connect provider. It also cannot be used as a SPIFFE provider.
+
+This is where the dirty trick comes in. I register the GitHub OIDC provider as Kubernetes. This works because Keycloak expects an OIDC discovery endpoint at `<ISSUER URL>/.well-known/openid-configuration`, and GitHub exposes it there: [https://token.actions.githubusercontent.com/.well-known/openid-configuration](https://token.actions.githubusercontent.com/.well-known/openid-configuration).
