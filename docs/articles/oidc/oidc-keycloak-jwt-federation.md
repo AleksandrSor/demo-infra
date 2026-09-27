@@ -282,8 +282,8 @@ jobs:
       DEPLOY_ENV: test-keycloak
       KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
       KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
-      KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}/auth/realms/${{ vars.KEYCLOAK_REALM }}"
-      KEYCLOAK_BASE_PATH: /auth #legacy path
+      KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}${{ vars.KEYCLOAK_BASE_PATH || '' }}/realms/${{ vars.KEYCLOAK_REALM }}"
+      KEYCLOAK_BASE_PATH: ${{ vars.KEYCLOAK_BASE_PATH || '' }} # legacy path /auth
     steps:
       - id: keycloak-token
         name: Get KC token
@@ -302,7 +302,7 @@ jobs:
           echo "----"
       - name: Admin Test KC token
         run: |
-          KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KEYCLOAK_REALM" \
+          KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/admin/realms/$KEYCLOAK_REALM" \
             -H "Authorization: Bearer ${{ steps.keycloak-token.outputs.access-token }}" \
             -H "Accept: application/json" | jq -r '.')
           echo "----"
