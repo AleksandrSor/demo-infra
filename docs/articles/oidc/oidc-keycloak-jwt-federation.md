@@ -1,3 +1,23 @@
+# OIDC: Keycloak JWT Federation
+
+![scheme](./oidc-aws-federation.png "scheme.")
+
+## Introduction
+
+In my previous posts, I mentioned the important topic of zero static credentials. This is especially relevant today, as interactions with AI agents in protected environments can unexpectedly expose credentials.
+
+In this part, I explain how to authenticate GitHub Actions jobs so they can provision Keycloak without static credentials. A dirty trick is involved, and I explain it below.
+
+## GitHub OIDC Provider
+
+GitHub provides a [GitHub Actions OIDC provider](https://docs.github.com/en/actions/concepts/security/openid-connect), so our repository, refs, pull requests, and even environments can act as identities for resource servers that accept OIDC tokens.
+
+The token format and the `sub` claim are covered in my [previous post](/docs/articles/oidc/oidc-aws-federation.md). 
+
+For AWS authentication, I used an official action that helps retrieve a token from the GitHub OIDC provider. Keycloak does not currently have an official action, so I had to use custom steps to obtain the token.
+
+[action.yml](.github/actions/keycloak-token/action.yml)
+```yaml
 name: Keycloak Token Action
 description: 'Action to obtain a Keycloak token'
 inputs:
@@ -10,16 +30,6 @@ inputs:
   keycloak-base-path:
     description: 'The base path for Keycloak (optional)'
     required: false
-  keycloak-client-id:
-    description: 'The Keycloak client ID for token retrieval'
-    required: true
-outputs:
-  access-token:
-    description: 'The obtained Keycloak token'
-    value: ${{ steps.get-kc-token.outputs.keycloakAccessToken }}
-  id-token:
-    description: 'The obtained Keycloak ID token'
-    value: ${{ steps.get-kc-token.outputs.keycloakIdToken }}
 runs:
   using: "composite"
   steps:
@@ -53,24 +63,5 @@ runs:
           console.log('----');
           console.log(decodeJWT(ghToken));
           console.log('----');
-    - name: Get KC token
-      id: get-kc-token
-      shell: bash
-      run: |
-        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
-          -H 'Content-Type: application/x-www-form-urlencoded' \
-          -d 'grant_type=client_credentials' \
-          -d 'scope=openid' \
-          -d 'client_id=${{ inputs.keycloak-client-id }}' \
-          -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
-          -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
-        KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
-        echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
-        echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
-        echo "----"
-        echo "KC Response:"
-        echo "${KEYCLOAK_RESPONSE}"
-        echo "----"
-        echo "Decoded KC Token:"
-        echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
-        echo "----"
+```
+This composite action uses `actions/github-script` and the `core.getIDToken(audience)` function with a custom audience value. Keycloak expects the `aud` claim to match the `issuer_url` of the Keycloak realm endpoint.
