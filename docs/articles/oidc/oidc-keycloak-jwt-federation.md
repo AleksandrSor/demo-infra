@@ -64,7 +64,8 @@ runs:
           console.log(decodeJWT(ghToken));
           console.log('----');
 ```
-This composite action uses `actions/github-script` and the `core.getIDToken(audience)` function with a custom audience value. Keycloak expects the `aud` claim to match the `issuer_url` of the Keycloak realm endpoint.
+This composite action uses `actions/github-script` and the `core.getIDToken(audience)` function with a custom audience value. Keycloak [expects](https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication) the `aud` claim to match the `issuer_url` of the Keycloak realm endpoint.
+> The aud (audience) Claim. Value that identifies the Authorization Server as an intended audience. The Authorization Server MUST verify that it is an intended audience for the token. The Audience SHOULD be the URL of the Authorization Server's Token Endpoint.
 
 Example of a decoded GitHub token from the test workflow:
 ```json
@@ -188,3 +189,141 @@ data "keycloak_role" "query-realms" {
   name      = "query-realms"
 }
 ```
+
+### Token Exchange
+
+Now I can exchange my GitHub token for Keycloak token.
+
+[action.yml](/.github/actions/keycloak-token/action.yml)
+```yaml
+    - name: Get KC token
+      id: get-kc-token
+      shell: bash
+      run: |
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}${{ inputs.keycloak-base-path || '' }}/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
+          -H 'Content-Type: application/x-www-form-urlencoded' \
+          -d 'grant_type=client_credentials' \
+          -d 'scope=openid' \
+          -d 'client_id=${{ inputs.keycloak-client-id }}' \
+          -d 'client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer' \
+          -d 'client_assertion=${{ steps.get-gh-token.outputs.ghToken }}' | jq -r '.')
+        KEYCLOAK_TOKEN=$(echo $KEYCLOAK_RESPONSE | jq -r '.access_token')
+        echo "keycloakAccessToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "keycloakIdToken=${KEYCLOAK_TOKEN}" >> $GITHUB_OUTPUT
+        echo "----"
+        echo "KC Response:"
+        echo "${KEYCLOAK_RESPONSE}"
+        echo "----"
+        echo "Decoded KC Token:"
+        echo "${KEYCLOAK_TOKEN}" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson'
+        echo "----"
+```
+The most important parts of the request are:
+- `grant_type=client_credentials`: specifies the authentication flow type.
+- `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer`: specifies the assertion type used for client authentication.
+- `client_assertion=${{ steps.get-gh-token.outputs.ghToken }}`: passes the GitHub token as the client assertion.
+
+Documentation is available [here](https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication).
+
+
+Example of a decoded Keycloak token from the test workflow:
+```json
+{
+    ...
+    "iss": "https://<KEYCLOAK_URL>/auth/realms/demo-infra-project",
+    "aud": [
+      "realm-management",
+      "account"
+    ],
+    "sub": "2a428d3a-4359-49f4-abcd-607fdb23aa8f",
+    ...
+    "azp": "repo:AleksandrSor/demo-infra:environment:test-keycloak",
+    "resource_access": {
+      "realm-management": {
+        "roles": [
+          "view-realm",
+          "query-realms"
+        ]
+      },
+      "account": {
+        "roles": [
+          "manage-account",
+          "manage-account-links",
+          "view-profile"
+        ]
+      }
+    },
+    ...
+    "client_id": "repo:AleksandrSor/demo-infra:environment:test-keycloak"
+  }
+```
+
+### Testing the Keycloak token
+
+To run a quick test, we can execute the following jobs against our Keycloak instance:
+```yaml
+ame: test JWT
+on:
+  push:
+    branches:
+      - test/test-jwt
+
+permissions:
+  contents: read  
+  id-token: write # Required to request OIDC token for Terraform Cloud API authentication
+
+jobs:
+  test-jwt:
+    runs-on: ubuntu-24.04-arm
+    environment: 
+      name: test-keycloak
+      deployment: false
+    env:
+      DEPLOY_ENV: test-keycloak
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
+      KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}/auth/realms/${{ vars.KEYCLOAK_REALM }}"
+      KEYCLOAK_BASE_PATH: /auth #legacy path
+    steps:
+      - id: keycloak-token
+        name: Get KC token
+        uses: ./.github/actions/keycloak-token
+        with:
+          keycloak-url: ${{ env.KEYCLOAK_URL }}
+          keycloak-realm: ${{ env.KEYCLOAK_REALM }}
+          keycloak-client-id: repo:${{ github.repository }}:environment:${{ env.DEPLOY_ENV }}
+          keycloak-base-path: ${{ env.KEYCLOAK_BASE_PATH || ''}}
+      - name: Test KC token
+        run: |
+          KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+            -H "Authorization: Bearer ${{ steps.keycloak-token.outputs.id-token }}" | jq -r '.')
+          echo "----"
+          echo "${KEYCLOAK_RESPONSE}"
+          echo "----"
+      - name: Admin Test KC token
+        run: |
+          KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KEYCLOAK_REALM" \
+            -H "Authorization: Bearer ${{ steps.keycloak-token.outputs.access-token }}" \
+            -H "Accept: application/json" | jq -r '.')
+          echo "----"
+          echo "${KEYCLOAK_RESPONSE}"
+          echo "----"
+```
+
+Output:
+```json
+Run KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
+----
+{
+  "sub": "2a428d3a-4359-49f4-abcd-607fdb23aa8f",
+  "email_verified": false,
+  "preferred_username": "service-account-repo:aleksandrsor/demo-infra:environment:test-keycloak"
+}
+```
+
+## Additional links
+
+- [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
+- [Keycloak: Federated client authentication](https://www.keycloak.org/2026/01/federated-client-authentication)
+- [Terraform Registry: Keycloak provider](https://registry.terraform.io/providers/keycloak/keycloak/latest)
+- [GitHub Actions: OIDC in cloud providers](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-cloud-providers)
