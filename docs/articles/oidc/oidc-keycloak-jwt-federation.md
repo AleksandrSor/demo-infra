@@ -105,3 +105,86 @@ More information is available in this [blog post](https://www.keycloak.org/2026/
 Since the GitHub OIDC provider does not expose a client authentication endpoint, it cannot be registered properly as an OpenID Connect provider. It also cannot be used as a SPIFFE provider.
 
 This is where the dirty trick comes in. I register the GitHub OIDC provider as Kubernetes. This works because Keycloak expects an OIDC discovery endpoint at `<ISSUER URL>/.well-known/openid-configuration`, and GitHub exposes it there: [https://token.actions.githubusercontent.com/.well-known/openid-configuration](https://token.actions.githubusercontent.com/.well-known/openid-configuration).
+
+### Register Identity Provider
+
+[github-actions.tf](/IaC/keycloak/github-actions.tf)
+```terraform
+locals {
+  github_actions_issuer = "https://token.actions.githubusercontent.com"
+}
+
+resource "keycloak_kubernetes_identity_provider" "github_actions" {
+  alias  = "github-actions"
+  realm  = keycloak_realm.realm.id
+  issuer = local.github_actions_issuer
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
+
+### Create a client for GitHub OIDC
+
+This client uses the [Service Account Roles authentication flow](https://www.keycloak.org/docs/latest/server_admin/index.html#_service_accounts) with
+JWT Federated Client Authentication.
+[github-actions.tf](/IaC/keycloak/github-actions.tf)
+```terraform
+resource "keycloak_openid_client" "github_actions" {
+  realm_id                     = keycloak_realm.realm.id
+  client_id                    = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
+  name                         = "github-actions-${replace(local.config.env.repository.name, "/[^a-zA-Z0-9]/", "-")}-env-${local.config.env.repository.protected_environment}"
+  enabled                      = true
+  access_type                  = "CONFIDENTIAL"
+  standard_flow_enabled        = false
+  direct_access_grants_enabled = false
+  service_accounts_enabled     = true
+  client_authenticator_type    = "federated-jwt"
+
+  extra_config = {
+    "jwt.credential.issuer" = keycloak_kubernetes_identity_provider.github_actions.alias
+    "jwt.credential.sub"    = "repo:${local.config.env.repository.name}:environment:${local.config.env.repository.protected_environment}"
+  }
+
+  description = jsonencode(local.config.common_tags)
+
+}
+```
+
+Next, assign roles to the service account used by the GitHub Actions workflow.
+[github-actions.tf](/IaC/keycloak/github-actions.tf)
+```terraform
+resource "keycloak_openid_client_service_account_role" "github_actions_service_account_role_realm_admin" {
+  realm_id                = keycloak_realm.realm.id
+  service_account_user_id = keycloak_openid_client.github_actions.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = data.keycloak_role.realm-admin.name
+}
+
+resource "keycloak_openid_client_service_account_role" "github_actions_service_account_role_query_realms" {
+  realm_id                = keycloak_realm.realm.id
+  service_account_user_id = keycloak_openid_client.github_actions.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = data.keycloak_role.query-realms.name
+}
+```
+[realm-management.tf](/IaC/keycloak/realm-management.tf)
+```terraform
+data "keycloak_openid_client" "realm_management" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = "realm-management"
+}
+
+data "keycloak_role" "realm-admin" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.realm_management.id
+  name      = "realm-admin"
+}
+
+data "keycloak_role" "query-realms" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = data.keycloak_openid_client.realm_management.id
+  name      = "query-realms"
+}
+```
