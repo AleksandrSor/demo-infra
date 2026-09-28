@@ -70,7 +70,7 @@ This composite action uses `actions/github-script` and the `core.getIDToken(audi
 > The aud (audience) Claim. Value that identifies the Authorization Server as an intended audience. The Authorization Server MUST verify that it is an intended audience for the token. The Audience SHOULD be the URL of the Authorization Server's Token Endpoint.
 
 Example of a decoded GitHub token from the test workflow:
-```json
+```javascript
 {
   actor: 'AleksandrSor',
   actor_id: '...',
@@ -196,6 +196,16 @@ Now I can exchange my GitHub token for a Keycloak token.
 
 [action.yml](/.github/actions/keycloak-token/action.yml)
 ```yaml
+inputs:
+  ...
+  keycloak-client-id:
+    description: 'The Keycloak client ID for token retrieval'
+    required: true
+  ...
+runs:
+  using: "composite"
+  steps:
+  ...
     - name: Get KC token
       id: get-kc-token
       shell: bash
@@ -222,6 +232,7 @@ The most important parts of the request are:
 - `grant_type=client_credentials`: specifies the authentication flow type.
 - `client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer`: specifies the assertion type used for client authentication.
 - `client_assertion=${{ steps.get-gh-token.outputs.ghToken }}`: passes the GitHub token as the client assertion.
+- `client_id=${{ inputs.keycloak-client-id }}`: the client ID of the Keycloak client resource created in IaC (`keycloak_openid_client.github_actions`).
 
 Documentation is available [here](https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication).
 
@@ -270,7 +281,7 @@ on:
 
 permissions:
   contents: read  
-  id-token: write # Required to request OIDC token for Terraform Cloud API authentication
+  id-token: write # # Required to request a GitHub OIDC token for Keycloak authentication
 
 jobs:
   test-jwt:
@@ -285,6 +296,7 @@ jobs:
       KEYCLOAK_AUDIENCE: "${{ vars.KEYCLOAK_URL }}${{ vars.KEYCLOAK_BASE_PATH || '' }}/realms/${{ vars.KEYCLOAK_REALM }}"
       KEYCLOAK_BASE_PATH: ${{ vars.KEYCLOAK_BASE_PATH || '' }} # legacy path /auth
     steps:
+      - uses: actions/checkout@v4
       - id: keycloak-token
         name: Get KC token
         uses: ./.github/actions/keycloak-token
@@ -311,7 +323,7 @@ jobs:
 ```
 
 Output:
-```json
+```text
 Run KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KEYCLOAK_REALM/protocol/openid-connect/userinfo" \
 ----
 {
