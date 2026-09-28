@@ -1,12 +1,14 @@
 # OIDC: Keycloak JWT Federation
 
-![scheme](./oidc-aws-federation.png "scheme.")
+![scheme](./oidc-keycloak-jwt-federation.png "scheme.")
 
 ## Introduction
 
 In my previous posts, I mentioned the important topic of zero static credentials. This is especially relevant today, as interactions with AI agents in protected environments can unexpectedly expose credentials.
 
 In this part, I explain how to authenticate GitHub Actions jobs so they can provision Keycloak without static credentials. A dirty trick is involved, and I explain it below.
+
+In the same way, I can access resource servers from GitHub Actions workflows by using Keycloak as an identity broker.
 
 ## GitHub OIDC Provider
 
@@ -91,14 +93,12 @@ Now I need to exchange my GitHub token for a Keycloak token with the correct per
 
 I want to eliminate the need to store static credentials, and Keycloak JWT federation helps me achieve that.
 
-The first step to setting up federated client authentication is to define a trust relationship between Keycloak and the external identity providers. This is done by creating a new identity provider in the realm.
+The first step in setting up federated client authentication is to define a trust relationship between Keycloak and the external identity providers. This is done by creating a new identity provider in the realm.
 
-Keycloak currently has three types of identity providers that support federated client authentication:
+Keycloak currently supports three identity provider types for federated client authentication:
 
 - OpenID Connect
-
 - SPIFFE
-
 - Kubernetes
 
 More information is available in this [blog post](https://www.keycloak.org/2026/01/federated-client-authentication).
@@ -192,7 +192,7 @@ data "keycloak_role" "query-realms" {
 
 ### Token Exchange
 
-Now I can exchange my GitHub token for Keycloak token.
+Now I can exchange my GitHub token for a Keycloak token.
 
 [action.yml](/.github/actions/keycloak-token/action.yml)
 ```yaml
@@ -260,9 +260,9 @@ Example of a decoded Keycloak token from the test workflow:
 
 ### Testing the Keycloak token
 
-To run a quick test, we can execute the following jobs against our Keycloak instance:
+To run a quick test, we can execute the following job against our Keycloak instance:
 ```yaml
-ame: test JWT
+name: test JWT
 on:
   push:
     branches:
@@ -320,6 +320,71 @@ Run KEYCLOAK_RESPONSE=$(curl -s "${KEYCLOAK_URL}${KEYCLOAK_BASE_PATH}/realms/$KE
   "preferred_username": "service-account-repo:aleksandrsor/demo-infra:environment:test-keycloak"
 }
 ```
+
+## Keycloak Terraform/OpenTofu provider
+
+Let’s put everything together in the IaC workflow. The provider documentation is available [here](https://registry.terraform.io/providers/keycloak/keycloak/latest/docs) and explains how to set up credentials to manage a Keycloak instance.
+
+Keep in mind that there is an initial chicken-and-egg problem: you need to run the Keycloak stack outside the GitHub workflow first so you can bootstrap the client used for GitHub Actions workflows.
+
+[deploy-IaC.yml](/.github/workflows/deploy-IaC.yml)
+```yaml
+name: deploy-IaC
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: IaC Deploy
+    environment: 
+      name: production
+      deployment: true
+    runs-on: ubuntu-24.04-arm
+    env:
+      DEPLOY_ENV: production
+      KEYCLOAK_URL: ${{ vars.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ vars.KEYCLOAK_REALM }}
+      KEYCLOAK_BASE_PATH: ${{ vars.KEYCLOAK_BASE_PATH || ''}}
+    defaults:
+      run:
+        working-directory: ${{ env.working_dir }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+          
+      ...
+      
+      - id: keycloak-token
+        name: Get KC token
+        uses: ./.github/actions/keycloak-token
+        with:
+          keycloak-url: ${{ env.KEYCLOAK_URL }}
+          keycloak-realm: ${{ env.KEYCLOAK_REALM }}
+          keycloak-client-id: repo:${{ github.repository }}:environment:${{ env.DEPLOY_ENV }}
+          keycloak-base-path: ${{ env.KEYCLOAK_BASE_PATH || ''}}
+
+      - name: Apply terragrunt configuration
+        env:
+          KEYCLOAK_ACCESS_TOKEN: ${{ steps.keycloak-token.outputs.access-token }}
+          KEYCLOAK_CLIENT_ID: ${{ vars.KEYCLOAK_CLIENT_ID || 'admin-cli' }}
+        run: |
+          terragrunt run --all --non-interactive --log-format bare -- apply -auto-approve
+```
+The Keycloak provider can be configured through environment variables:
+- `KEYCLOAK_URL`: Base URL of the Keycloak server (for example, `https://keycloak.example.com`).
+- `KEYCLOAK_REALM`: Realm
+- `KEYCLOAK_BASE_PATH`: Optional base path for Keycloak endpoints (for example, `/auth` for legacy distributions).
+- `KEYCLOAK_CLIENT_ID`: Client ID used by the provider to manage an instance (commonly `admin-cli` ).
+- `KEYCLOAK_ACCESS_TOKEN`: Access token obtained through token exchange.
+
+## Conclusion
+
+I can manage the Keycloak instance without static credentials by using a token from the GitHub OIDC provider. I can also use Keycloak as an identity broker to exchange my GitHub Actions token for a Keycloak token and access resource servers in the same way when they accept OIDC tokens.
 
 ## Additional links
 
