@@ -23,9 +23,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Export
-      run: export
-      shell: bash
     - name: Get JWT token
       id: get-gh-token
       env:
@@ -60,7 +57,7 @@ runs:
       id: get-kc-token
       shell: bash
       run: |
-        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}/auth/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
+        KEYCLOAK_RESPONSE=$(curl -s "${{ inputs.keycloak-url }}${{ inputs.keycloak-base-path || '' }}/realms/${{ inputs.keycloak-realm }}/protocol/openid-connect/token" \
           -H 'Content-Type: application/x-www-form-urlencoded' \
           -d 'grant_type=client_credentials' \
           -d 'scope=openid' \
