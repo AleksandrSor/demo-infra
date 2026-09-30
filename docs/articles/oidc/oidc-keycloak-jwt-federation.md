@@ -18,7 +18,7 @@ The token format and the `sub` claim are covered in my [previous post](/docs/art
 
 For AWS authentication, I used an official action that helps retrieve a token from the GitHub OIDC provider. Keycloak does not currently have an official action, so I had to use custom steps to obtain the token.
 
-[action.yml](.github/actions/keycloak-token/action.yml)
+[action.yml](/.github/actions/keycloak-token/action.yml)
 ```yaml
 name: Keycloak Token Action
 description: 'Action to obtain a Keycloak token'
